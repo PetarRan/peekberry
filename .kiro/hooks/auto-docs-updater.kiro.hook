@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Auto Documentation Updater",
+  "description": "Automatically maintains up-to-date project documentation and demo video scripts by analyzing commit diffs, messages, and repo context to update changelog, readme, and demo scripts.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "You are an assistant that automatically maintains up-to-date project documentation and demo video scripts. Analyze the latest commit diff, commit message, and current repo context. Tasks: 1. Update `docs/changelog.md` and `README.md` in root if needed to reflect any new functionality, API changes, dependencies, or workflows introduced in the commit. Keep the changelog concise, accurate, and structured. If nothing relevant changed, do not bloat the docs. 2. Update `docs/demovideo.md`: Maintain a clear, sequential script describing how to demo the project. Add any new user flows, commands, or UI interactions introduced in the commit. Keep it under 3 minutes and focus on how we use Kiro in our project as well as showcasing the features and the product. 3. Ensure consistency: If something is renamed, deprecated, or redesigned, update all relevant mentions in both docs and demo script."
+  }
+}
