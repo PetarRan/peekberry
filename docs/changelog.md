@@ -14,8 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Technology stack definition: React + TypeScript, Vite, Material-UI, Supabase auth
 - Chrome Extension Manifest V3 architecture planning
 - Project structure documentation for extension components (popup, content, background)
+- Complete package.json with production and development dependencies
 - Development workflow with npm scripts for dev, build, preview, type-check, and lint
 - Extension testing instructions for Chrome Developer Mode
+- Core dependencies: React 18.2, Material-UI 5.14, Supabase 2.38, TypeScript 5.0
+- Development tooling: Vite 4.4, ESLint 8.45, Chrome types 0.0.246
 
 ### Planned
 

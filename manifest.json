@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "Peekberry",
+  "version": "1.0.0",
+  "description": "Make UI modifications using natural language commands",
+  
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  
+  "action": {
+    "default_popup": "dist/src/extension/popup/index.html",
+    "default_title": "Peekberry",
+    "default_icon": {
+      "16": "dist/icons/icon16.png",
+      "48": "dist/icons/icon48.png",
+      "128": "dist/icons/icon128.png"
+    }
+  },
+  
+  "icons": {
+    "16": "dist/icons/icon16.png",
+    "48": "dist/icons/icon48.png",
+    "128": "dist/icons/icon128.png"
+  },
+  
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["dist/content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["dist/*"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ]
+}
