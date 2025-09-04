@@ -69,7 +69,7 @@
 │   ├── icon16.png
 │   ├── icon48.png
 │   └── icon128.png
-└── peekberry-logo.svg     # Main logo for floating widget
+└── peekberry-logo.png     # Main logo for floating widget
 ```
 
 ## Key Architectural Patterns

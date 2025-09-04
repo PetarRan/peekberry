@@ -261,7 +261,7 @@ interface ExtensionState {
 │   ├── icon16.png
 │   ├── icon48.png
 │   └── icon128.png
-└── peekberry-logo.svg
+└── peekberry-logo.png
 │
 📂 src/
 ├── 🔧 config/
