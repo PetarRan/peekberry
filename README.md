@@ -10,11 +10,24 @@ Chrome extension for ephemeral UI modifications using natural language commands.
 npm install
 ```
 
-2. Start development server:
+2. Set up environment variables:
+
+Create a `.env` file in the root directory with your Supabase credentials:
 
 ```bash
-npm run dev
+# Supabase Configuration
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
+
+**Required Environment Variables:**
+
+- `VITE_SUPABASE_URL` - Your Supabase project URL (required)
+- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key (required)
+
+**Note**: The extension will display a clear error message if these environment variables are missing, helping with troubleshooting during development.
+
+The Supabase client is pre-configured with session persistence and automatic token refresh for seamless authentication.
 
 3. Build extension:
 
@@ -23,10 +36,16 @@ npm run build
 ```
 
 4. Load extension in Chrome:
+
    - Navigate to `chrome://extensions/`
    - Enable "Developer mode"
    - Click "Load unpacked"
    - Select the `dist` folder
+
+5. Test the extension:
+   - Click the Peekberry icon in the Chrome toolbar
+   - Sign up or sign in with your credentials
+   - Toggle the extension on/off for the current page
 
 ## Available Scripts
 
@@ -41,6 +60,7 @@ npm run build
 - `src/extension/popup/` - Extension popup interface
 - `src/extension/content/` - Content scripts injected into pages
 - `src/extension/background/` - Background service worker
+- `src/config/` - Configuration files (Supabase client setup)
 - `src/theme/` - Material-UI theme configuration
 - `src/types/` - TypeScript type definitions
 

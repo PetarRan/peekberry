@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Error handling for missing Supabase environment variables with clear error messages
+
+### Changed
+
+- Supabase configuration now requires `VITE_SUPABASE_URL` environment variable (removed fallback URL for better security)
+
+### Added
+
 - Initial project setup and documentation
 - Comprehensive README.md with project overview, features, and development setup
 - Technology stack definition: React + TypeScript, Vite, Material-UI, Supabase auth
@@ -19,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Extension testing instructions for Chrome Developer Mode
 - Core dependencies: React 18.2, Material-UI 5.14, Supabase 2.38, TypeScript 5.0
 - Development tooling: Vite 4.4, ESLint 8.45, Chrome types 0.0.246
+- Supabase client configuration with authentication settings (session persistence, auto-refresh tokens)
 
 ### Planned
 

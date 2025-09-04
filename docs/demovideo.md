@@ -109,7 +109,8 @@
 - Node.js environment with npm installed
 - Sample staging website with various UI elements
 - Peekberry extension built (`npm run build`) and loaded
-- Extension authenticated via Supabase
+- Environment variables properly configured with valid Supabase credentials (both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are required)
+- Extension authenticated via Supabase (automatic session persistence enabled)
 
 ### Key Demo Elements to Highlight
 
@@ -127,8 +128,9 @@
 
 ### Post-Demo Q&A Preparation
 
-- Authentication: Supabase integration for secure access
+- Authentication: Supabase integration with persistent sessions and automatic token refresh
 - Compatibility: Works on most standard web applications
 - Limitations: CSP restrictions, complex dynamic content
 - Export formats: Screenshots (PNG), CSS overrides (text)
 - Team usage: Multi-user authentication, session management
+- Configuration: Environment-based Supabase setup for different deployment environments

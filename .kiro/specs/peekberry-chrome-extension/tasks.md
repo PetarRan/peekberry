@@ -7,7 +7,7 @@
   - Create basic project structure and build configuration
   - _Requirements: 8.3_
 
-- [ ] 2. Create basic extension architecture and authentication
+- [x] 2. Create basic extension architecture and authentication
 
   - Implement popup with Supabase authentication (login/signup forms)
   - Create background script for extension lifecycle
