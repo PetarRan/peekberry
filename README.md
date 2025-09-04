@@ -25,7 +25,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 - `VITE_SUPABASE_URL` - Your Supabase project URL (required)
 - `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key (required)
 
-**Note**: The extension will display a clear error message if these environment variables are missing, helping with troubleshooting during development.
+**Security Note**: As of the latest update, Supabase credentials are no longer hardcoded in the source code. The extension will display a clear error message if these environment variables are missing, helping with troubleshooting during development. Environment variables are accessed using Vite's `import.meta.env` syntax for proper Chrome extension compatibility.
 
 The Supabase client is pre-configured with session persistence and automatic token refresh for seamless authentication.
 
@@ -40,7 +40,7 @@ npm run build
    - Navigate to `chrome://extensions/`
    - Enable "Developer mode"
    - Click "Load unpacked"
-   - Select the `dist` folder
+   - Select the project root folder (contains manifest.json)
 
 5. Test the extension:
    - Click the Peekberry icon in the Chrome toolbar

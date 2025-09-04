@@ -108,8 +108,8 @@
 - Chrome browser with Developer Mode enabled
 - Node.js environment with npm installed
 - Sample staging website with various UI elements
-- Peekberry extension built (`npm run build`) and loaded
-- Environment variables properly configured with valid Supabase credentials (both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are required)
+- Peekberry extension built (`npm run build`) and loaded from project root folder
+- Environment variables properly configured in `.env` file with valid Supabase credentials (both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are required, accessed via Vite's `import.meta.env` for security)
 - Extension authenticated via Supabase (automatic session persistence enabled)
 
 ### Key Demo Elements to Highlight

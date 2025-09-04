@@ -7,13 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+### Security
 
-- Error handling for missing Supabase environment variables with clear error messages
+- **BREAKING**: Removed hardcoded Supabase credentials from source code for improved security
+- Supabase configuration now uses environment variables (`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`)
+- Added validation to ensure required environment variables are present at runtime
+
+### Fixed
+
+- Fixed Supabase configuration to use Vite's `import.meta.env` syntax instead of Node.js `process.env` for environment variables
+- Resolved build compatibility issues with Vite bundler for Chrome extension environment
 
 ### Changed
 
+- Updated Chrome extension manifest file paths to reference source files directly instead of dist folder
+- Simplified build configuration for extension assets (icons, popup HTML)
 - Supabase configuration now requires `VITE_SUPABASE_URL` environment variable (removed fallback URL for better security)
+
+### Added
+
+- Error handling for missing Supabase environment variables with clear error messages
 
 ### Added
 
