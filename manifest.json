@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Make UI modifications using natural language commands",
 
-  "permissions": ["activeTab", "storage", "scripting"],
+  "permissions": ["activeTab", "storage", "scripting", "tabs"],
 
   "host_permissions": ["http://*/*", "https://*/*"],
 

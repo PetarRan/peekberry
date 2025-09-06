@@ -1,91 +1,101 @@
-import ReactDOM from 'react-dom/client'
-import { ThemeProvider } from '@mui/material/styles'
-import CssBaseline from '@mui/material/CssBaseline'
-import { Box, Typography, Button, CircularProgress, Alert, Switch, FormControlLabel } from '@mui/material'
-import theme from '../../theme/theme'
-import { AuthProvider, useAuth } from '../../shared/contexts/AuthContext'
-import { ExtensionProvider, useExtension } from '../../shared/contexts/ExtensionContext'
-import { AuthFlow } from './AuthFlow'
+import ReactDOM from "react-dom/client";
+import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import { Box, Typography, CircularProgress } from "@mui/material";
+import theme from "../../theme/theme";
+import { AuthProvider, useAuth } from "../../shared/contexts/AuthContext";
+import { AuthFlow } from "./AuthFlow";
+import {
+  handleOAuthCallback,
+  isOAuthCallback,
+} from "../../shared/utils/oauth-handler";
+import { useEffect, useState } from "react";
 
 function PopupContent() {
-  const { user, loading: authLoading, signOut } = useAuth()
-  const { 
-    extensionState, 
-    activateExtension, 
-    deactivateExtension, 
-    loading: extensionLoading, 
-    error: extensionError 
-  } = useExtension()
+  const { user, loading: authLoading } = useAuth();
+  const [oauthProcessing, setOauthProcessing] = useState(false);
 
-  if (authLoading || extensionLoading) {
+  useEffect(() => {
+    // Handle OAuth callback if present
+    const handleCallback = async () => {
+      if (isOAuthCallback()) {
+        setOauthProcessing(true);
+        const success = await handleOAuthCallback();
+        setOauthProcessing(false);
+
+        if (success) {
+          // Clear the URL parameters to clean up the UI
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
+        }
+      }
+    };
+
+    handleCallback();
+  }, []);
+
+  // Notify content scripts when user becomes authenticated and close popup
+  useEffect(() => {
+    if (user) {
+      // Send message to all tabs to activate extension
+      chrome.tabs.query({}, (tabs) => {
+        tabs.forEach((tab) => {
+          if (tab.id) {
+            chrome.tabs
+              .sendMessage(tab.id, {
+                type: "USER_AUTHENTICATED",
+                user: user,
+              })
+              .catch(() => {
+                // Ignore errors for tabs that don't have content script
+              });
+          }
+        });
+      });
+
+      // Close popup immediately after sending messages
+      setTimeout(() => {
+        window.close();
+      }, 100);
+    }
+  }, [user]);
+
+  if (authLoading || oauthProcessing) {
     return (
-      <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+      <Box
+        sx={{
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
         <CircularProgress size={24} />
+        {oauthProcessing && (
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            Completing sign in...
+          </Typography>
+        )}
       </Box>
-    )
+    );
   }
 
   if (!user) {
-    return <AuthFlow />
+    return <AuthFlow />;
   }
 
-  const handleExtensionToggle = async () => {
-    if (extensionState?.isActive) {
-      await deactivateExtension()
-    } else {
-      await activateExtension()
-    }
-  }
-
+  // User is authenticated - show brief loading then close
   return (
-    <Box sx={{ p: 2, width: 320 }}>
-      <Typography variant="h6" component="h1" gutterBottom>
-        Peekberry
+    <Box sx={{ p: 2, width: 200, textAlign: "center" }}>
+      <CircularProgress size={24} />
+      <Typography variant="body2" sx={{ mt: 1 }}>
+        Activating...
       </Typography>
-      <Typography variant="body2" color="text.secondary" gutterBottom>
-        Welcome, {user.email}
-      </Typography>
-      
-      {extensionError && (
-        <Alert severity="error" sx={{ mb: 2, fontSize: '0.75rem' }}>
-          {extensionError}
-        </Alert>
-      )}
-      
-      <Box sx={{ mb: 2 }}>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={extensionState?.isActive || false}
-              onChange={handleExtensionToggle}
-              disabled={extensionLoading}
-            />
-          }
-          label={
-            <Typography variant="body2">
-              {extensionState?.isActive ? 'Extension Active' : 'Activate Extension'}
-            </Typography>
-          }
-        />
-      </Box>
-      
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        {extensionState?.isActive 
-          ? 'Extension is active. You can now interact with page elements.'
-          : 'Toggle the switch above to activate Peekberry on the current page.'
-        }
-      </Typography>
-      
-      <Button 
-        variant="outlined" 
-        size="small" 
-        onClick={signOut}
-        fullWidth
-      >
-        Sign Out
-      </Button>
     </Box>
-  )
+  );
 }
 
 function Popup() {
@@ -93,13 +103,11 @@ function Popup() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <ExtensionProvider>
-          <PopupContent />
-        </ExtensionProvider>
+        <PopupContent />
       </AuthProvider>
     </ThemeProvider>
-  )
+  );
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root')!)
-root.render(<Popup />)
+const root = ReactDOM.createRoot(document.getElementById("root")!);
+root.render(<Popup />);

@@ -23,62 +23,69 @@
 
 ## Core Demo Flow (0:45-2:30)
 
-### Step 1: Activation (0:45-1:00)
+### Step 1: Authentication & Seamless Activation (0:45-1:00)
 
-**Narrator**: "First, click the Peekberry extension icon to activate it on any webpage."
-
-**Screen Actions**:
-
-- Click Peekberry extension icon
-- Show floating circular widget appearing on page
-- Demonstrate element highlighting on hover
-
-### Step 2: Element Selection (1:00-1:15)
-
-**Narrator**: "Hover over any element to highlight it, then click to select. Peekberry captures the context automatically."
+**Narrator**: "First, authenticate through the Peekberry extension popup. After successful authentication, the popup automatically closes and immediately activates the extension - no manual steps required. This creates a smooth, professional experience that gets you working faster."
 
 **Screen Actions**:
 
-- Hover over a button (show highlight border)
-- Click to select (show selection indicator)
-- Hover over text, images, cards to show versatility
+- Click Peekberry extension icon to show popup authentication
+- Demonstrate Google OAuth flow (opens in controlled popup window, automatically monitors completion and handles timeouts)
+- Show beautiful OAuth success page with gradient background and glassmorphism design
+- Highlight the automatic popup closure after authentication completes
+- Navigate to a demo webpage
+- Show floating circular widget with Peekberry logo appearing automatically on page
+- Demonstrate hover effects with smooth scaling and shadow transitions
 
-### Step 3: Natural Language Commands (1:15-1:45)
+### Step 2: Widget Interaction (1:00-1:15)
 
-**Narrator**: "Click the floating widget to open the chat interface. Now describe your changes in plain English."
+**Narrator**: "The floating widget is beautifully integrated with Material-UI theming. Click it to expand the interface - element selection and highlighting features are coming next."
 
 **Screen Actions**:
 
-- Click floating widget to expand chat interface
-- Type: "make this button bigger and blue"
-- Show AI processing indicator
-- Display real-time change application
+- Show tooltip appearing on hover: "Peekberry - Click to expand"
+- Click floating widget to demonstrate toggle functionality
+- Highlight the smooth animations and professional Material-UI styling
+- Show widget positioning that stays above all page content
 
-**Follow-up commands**:
+### Step 3: Coming Soon - Chat Interface (1:15-1:45)
 
+**Narrator**: "The foundation is set for the expandable chat interface. Soon, you'll click the widget to reveal natural language input where you can describe UI changes in plain English."
+
+**Screen Actions**:
+
+- Show current toggle functionality as foundation for expansion
+- Preview mockup of planned chat interface expansion
+- Demonstrate how the current widget positioning will accommodate the chat overlay
+
+**Planned commands**:
+
+- "make this button bigger and blue"
 - "center this text"
 - "make this card taller"
 - "use a bolder font here"
 
-### Step 4: Instant Results (1:45-2:00)
+### Step 4: Current Progress & Vision (1:45-2:00)
 
-**Narrator**: "Changes apply immediately. Everything is ephemeral - no permanent code modifications, perfect for demos and experimentation."
-
-**Screen Actions**:
-
-- Show multiple modifications being applied
-- Demonstrate page refresh reverting changes
-- Re-activate to show clean slate
-
-### Step 5: Export & Share (2:00-2:30)
-
-**Narrator**: "When you're happy with the changes, capture screenshots or export the CSS for your development team to implement."
+**Narrator**: "The floating widget foundation is complete with professional Material-UI theming. Next comes element selection, then instant UI modifications that are completely ephemeral - perfect for demos and experimentation."
 
 **Screen Actions**:
 
-- Use export tools to capture screenshot
-- Show CSS override generation
-- Demonstrate copy-to-clipboard functionality
+- Show widget persistence across different pages
+- Demonstrate consistent theming and positioning
+- Preview how element highlighting will integrate with the current widget
+- Show page refresh maintaining widget state through extension lifecycle
+
+### Step 5: Development Foundation (2:00-2:30)
+
+**Narrator**: "The current implementation showcases solid engineering practices - proper TypeScript interfaces, Material-UI integration, and Chrome extension architecture. Export tools for screenshots and CSS will build on this foundation."
+
+**Screen Actions**:
+
+- Show clean code structure in FloatingWidget component
+- Demonstrate proper theme integration and responsive design
+- Highlight extension manifest configuration and asset loading
+- Preview how export functionality will integrate with the current widget system
 
 ## Development Workflow with Kiro (2:30-2:50)
 
@@ -107,18 +114,22 @@
 
 - Chrome browser with Developer Mode enabled
 - Node.js environment with npm installed
-- Sample staging website with various UI elements
+- Sample staging website with various UI elements for testing widget positioning
 - Peekberry extension built (`npm run build`) and loaded from project root folder
 - Environment variables properly configured in `.env` file with valid Supabase credentials (both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are required, accessed via Vite's `import.meta.env` for security)
-- Extension authenticated via Supabase (automatic session persistence enabled)
+- Extension authenticated via Supabase with tab-based OAuth flow (automatic session persistence enabled)
+- Peekberry logo asset (`public/peekberry-logo.avif`) properly loaded through Chrome extension web accessible resources
 
 ### Key Demo Elements to Highlight
 
-- **Ease of Use**: No technical knowledge required
-- **Speed**: Instant modifications vs traditional development cycles
-- **Safety**: Ephemeral changes, no permanent code impact
-- **Collaboration**: Export tools for developer handoff
-- **Versatility**: Works on standard HTML/React applications
+- **Streamlined UX**: Popup automatically closes after authentication, creating a seamless transition from login to active extension state
+- **Professional Flow**: No manual popup closure required - authentication flows directly into extension activation
+- **Professional UI**: Material-UI theming with smooth animations and hover effects throughout floating widget
+- **Seamless Integration**: Floating widget that doesn't interfere with page content
+- **Solid Foundation**: TypeScript interfaces and proper Chrome extension architecture
+- **Visual Polish**: Custom shadows, scaling transitions, and branded logo integration in both popup and floating widget
+- **Extensible Design**: Widget structure ready for chat interface and element selection expansion
+- **Cross-Page Persistence**: Widget maintains state and positioning across navigation
 
 ### Backup Demo Scenarios
 
@@ -128,9 +139,10 @@
 
 ### Post-Demo Q&A Preparation
 
-- Authentication: Supabase integration with persistent sessions and automatic token refresh
+- Authentication: Supabase integration with popup-based OAuth flow with intelligent monitoring and timeout handling, custom success page with glassmorphism design, persistent sessions and automatic token refresh
 - Compatibility: Works on most standard web applications
 - Limitations: CSP restrictions, complex dynamic content
 - Export formats: Screenshots (PNG), CSS overrides (text)
 - Team usage: Multi-user authentication, session management
-- Configuration: Environment-based Supabase setup for different deployment environments
+- Configuration: Environment-based Supabase setup for different deployment environments (credentials now securely managed via `.env` file instead of hardcoded values)
+- Security: Enhanced OAuth security with PKCE flow, Supabase credentials are no longer exposed in source code, improving security posture for production deployments
