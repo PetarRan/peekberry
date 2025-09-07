@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Build Demo Video Updater",
+  "description": "Automatically updates the video demo documentation in docs/video-demo.md whenever npm run build is executed, ensuring the hackathon demo script stays current with the latest build",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "package.json",
+      ".next/build-manifest.json",
+      "dist/"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A build has been completed. Please update the file docs/video-demo.md with a comprehensive 3-minute demo video script for the hackathon submission. The script should:\n\n1. Explain what Peekberry is - a Chrome extension and webapp for editing websites with natural language\n2. Demonstrate how Kiro was used in development, specifically:\n   - How hooks like this one automated our development workflow\n   - How Kiro helped with code generation for the Chrome extension and Next.js webapp\n   - How steering and conversation structuring improved our development process\n3. Show the key features: element selection, natural language editing, screenshot capture, user dashboard\n4. Highlight the technical stack: Next.js 15, React 18, Material UI, Chrome Extension Manifest V3, Supabase, Clerk\n5. Include timing markers for a 3-minute presentation\n6. Make it engaging for hackathon judges who want to see both the product and how Kiro enabled its creation\n\nStructure it as a clear demo script with specific talking points and demonstration steps."
+  }
+}

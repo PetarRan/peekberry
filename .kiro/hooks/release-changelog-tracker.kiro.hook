@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "name": "Release Changelog Tracker",
+  "description": "Automatically updates the changelog in docs/changelog.md whenever a release is drafted, appending new release information without overwriting previous versions",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "package.json",
+      "CHANGELOG.md",
+      "RELEASES.md",
+      "releases/**",
+      "docs/releases/**",
+      ".github/workflows/**"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A release appears to be in progress. Please update the docs/changelog.md file by appending a new entry for this release. Follow this exact format:\n\n# release [version number]\nimportant changes:\n-> [list key changes]\nmain feature shipped:\n-> [describe the main feature]\n\nMake sure to:\n1. Detect the version number from the release context\n2. Do NOT overwrite existing changelog entries\n3. Append the new entry to the top of the file (after any existing entries)\n4. Keep the exact formatting specified\n5. If docs/changelog.md doesn't exist, create it\n6. Extract meaningful changes from commit messages, package.json changes, or release notes"
+  }
+}
