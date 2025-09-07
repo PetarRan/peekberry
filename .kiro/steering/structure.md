@@ -21,7 +21,6 @@ src/
 │   ├── (webapp)/         # Main application routes
 │   └── (extension)/      # Browser extension routes
 ├── components/           # Reusable UI components
-│   ├── dataDisplay/     # Tables, cards, data visualization
 │   ├── forms/           # Form components with validation
 │   ├── dialogs/         # Modal patterns
 │   ├── layout/          # Navigation, sidebar, app bar
