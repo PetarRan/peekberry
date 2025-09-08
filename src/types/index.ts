@@ -1,3 +1,16 @@
+// Re-export all schema types and validation schemas
+export * from '../schema';
+
+// Re-export extension-specific interfaces
+export * from './extension';
+
+// Re-export database types
+export * from './database';
+
+// Re-export API types
+export * from './api';
+
+// User type (managed by Clerk)
 export interface User {
   id: string; // Clerk user ID
   email: string;
@@ -5,59 +18,12 @@ export interface User {
   lastLoginAt: Date;
 }
 
-export interface Screenshot {
-  id: string;
-  clerkUserId: string;
-  filename: string;
-  url: string;
-  thumbnailUrl: string;
-  metadata: ScreenshotMetadata;
-  createdAt: Date;
-  size: number;
-}
+// Utility Types
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
 
-export interface ScreenshotMetadata {
-  pageUrl: string;
-  pageTitle: string;
-  editCount: number;
-  dimensions: {
-    width: number;
-    height: number;
-  };
-}
+export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
 
-export interface UserStats {
-  clerkUserId: string;
-  editsThisMonth: number;
-  screenshotsThisMonth: number;
-  totalEdits: number;
-  totalScreenshots: number;
-  lastActivity: Date;
-}
-
-export interface EditAction {
-  id: string;
-  type: 'style' | 'attribute' | 'content';
-  element: ElementContext;
-  mutation: DOMMutation;
-  timestamp: Date;
-  undoable: boolean;
-}
-
-export interface ElementContext {
-  selector: string;
-  tagName: string;
-  id?: string;
-  className?: string;
-  textContent?: string;
-  computedStyles: CSSStyleDeclaration;
-  boundingRect: DOMRect;
-}
-
-export interface DOMMutation {
-  type: 'style' | 'attribute' | 'content';
-  selector: string;
-  property: string;
-  value: string;
-  previousValue?: string;
-}
+export type OptionalFields<T, K extends keyof T> = Omit<T, K> &
+  Partial<Pick<T, K>>;

@@ -7,27 +7,27 @@
   - Configure Clerk authentication and Supabase integration
   - _Requirements: 1.1, 1.2_
 
-- [ ] 2. Create core data schemas and types
+- [x] 2. Create core data schemas and types
   - Define Zod schemas for Screenshot, ScreenshotMetadata, UserStats, and EditAction types
   - Create TypeScript interfaces for all Chrome extension components
   - Define API response types and error handling schemas
   - _Requirements: 7.1, 7.2_
 
-- [ ] 3. Set up Supabase database and storage
+- [x] 3. Set up Supabase database and storage
   - Create screenshots table with clerk_user_id references
   - Create user_stats table for activity tracking
   - Set up database indexes for performance
   - Configure Supabase storage bucket for screenshot files
   - _Requirements: 7.1, 7.6_
 
-- [ ] 4. Implement authentication system
-- [ ] 4.1 Set up Clerk authentication in Next.js webapp
+- [x] 4. Implement authentication system
+- [x] 4.1 Set up Clerk authentication in Next.js webapp
   - Configure Clerk middleware and authentication providers
   - Create sign-in and sign-up pages with email/password and OAuth options
   - Implement protected route middleware
   - _Requirements: 1.1, 1.5_
 
-- [ ] 4.2 Create authentication API endpoints
+- [x] 4.2 Create authentication API endpoints
   - Build API route for generating auth tokens for extension
   - Implement token validation and user session management
   - Create user profile and account settings endpoints

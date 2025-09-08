@@ -1,142 +1,135 @@
 # Peekberry Hackathon Demo Script
 
-_3-Minute Video Presentation_
+_3-minute presentation showcasing product and Kiro development workflow_
 
-## Opening Hook (0:00 - 0:20)
+## Opening Hook (0:00 - 0:15)
 
-**[Screen: Show a complex website like Amazon or GitHub]**
+**[Screen: Chrome browser on any website]**
 
-"What if you could edit any website just by pointing and saying 'make this button blue' or 'hide this sidebar'? Meet Peekberry - a Chrome extension that lets you modify any website using natural language commands."
+"What if you could edit any website just by pointing and saying what you want? Meet Peekberry - a Chrome extension that lets you modify any webpage using natural language commands. But here's the real story: we built this entire full-stack application in just 40 hours using Kiro as our AI development partner."
 
-**[Transition to Peekberry logo/title slide]**
+## Product Introduction (0:15 - 0:45)
 
-"I'm going to show you how we built this entire product in record time using Kiro AI, and demonstrate the magic of natural language web editing."
+**[Screen: Peekberry extension in action]**
 
-## Product Demo - Core Features (0:20 - 1:30)
+"Peekberry consists of two parts: a Chrome extension for real-time website editing, and a Next.js webapp for user management and analytics. Watch this - I can select any element on a webpage, type 'make this text blue and bigger', and see instant results. No CSS knowledge required."
 
-### Element Selection & Natural Language Editing (0:20 - 0:50)
+**[Demo: Select element, type command, show transformation]**
 
-**[Screen: Navigate to a demo website, show extension bubble]**
+"The extension captures screenshots, tracks your edits, and syncs everything to your personal dashboard. It's perfect for designers, developers, and content creators who need quick visual prototyping."
 
-"Here's how it works. First, I click our floating bubble to activate Peekberry."
+## Kiro Development Showcase (0:45 - 1:45)
 
-**[Click bubble, show chat panel opening]**
+**[Screen: Kiro interface with project files]**
 
-"Now I can hover over any element - see how it highlights? I'll click this header."
+"Here's what makes this hackathon submission unique - we didn't just build a product, we showcased the future of AI-assisted development. Let me show you how Kiro became our coding partner."
 
-**[Hover and click an element, show it gets selected]**
+**[Screen: Show .kiro/specs/peekberry-mvp/ folder]**
 
-"Now I just type what I want: 'Make this text purple and increase the font size'"
+"We started with Kiro specs - structured requirements that break down complex features into actionable tasks. Look at this comprehensive implementation plan: 15 major tasks covering everything from Chrome extension architecture to Supabase database design."
 
-**[Type command, show AI processing, then DOM changes happening in real-time]**
+**[Screen: Show steering files in .kiro/steering/]**
 
-"Watch the magic - Peekberry's AI understands my request and applies the changes instantly. No CSS knowledge required."
+"Kiro's steering system maintained our coding standards automatically. These files contain our tech stack preferences, architectural patterns, and coding conventions. Every time Kiro generated code, it followed these rules consistently across our entire Next.js 15, React 18, and Material UI codebase."
 
-### Undo/Redo & Session Management (0:50 - 1:10)
+**[Screen: Show hooks configuration and execution]**
 
-**[Demonstrate undo functionality]**
+"But the real game-changer was Kiro hooks. Watch this - every time we save a file, this hook automatically regenerates our database types from Supabase, rebuilds our Chrome extension, and runs our test suite. The hook that just triggered when we updated package.json? That's our entire CI/CD pipeline running locally, instantly."
 
-"Made a mistake? No problem. I can undo any change with a simple command or button click."
+**[Screen: Show conversation history with code generation]**
 
-**[Show undo action, then redo]**
+"Kiro generated our entire Chrome extension manifest, content scripts, background workers, and React components. Complex TypeScript interfaces, Zod validation schemas, API routes - all created through natural conversation. What traditionally takes weeks of research and debugging happened in hours."
 
-"And redo it just as easily. All changes are tracked for the current session."
+## Technical Architecture (1:45 - 2:15)
 
-### Screenshot Capture (1:10 - 1:30)
+**[Screen: Show project structure and database schema]**
 
-**[Show screenshot capture feature]**
+"The technical architecture demonstrates production-ready development: Next.js 15 with App Router, Chrome Extension Manifest V3, Supabase PostgreSQL with Row Level Security, Clerk authentication, and TanStack Query for state management. This isn't prototype code - it's deployment-ready."
 
-"Love what you've created? Capture a screenshot that automatically saves to your dashboard with metadata about your edits."
+**[Screen: Show supabase/migrations/001_initial_schema.sql]**
 
-**[Click screenshot button, show capture happening]**
+"Kiro designed our entire database schema with proper indexing, RLS policies, and atomic counter functions. Look at this migration file - comprehensive user statistics tracking, screenshot metadata, and secure storage policies. Kiro understood not just the code, but the security and performance implications."
 
-"This gets uploaded to our webapp where you can manage all your creations."
+**[Screen: Show API routes and TypeScript types]**
 
-## Technical Architecture & Kiro Development Story (1:30 - 2:30)
+"The data flow spans from Chrome extension message passing to React Query mutations, all with end-to-end TypeScript safety. Kiro generated Zod schemas, API endpoints, and even the complex Chrome extension communication patterns that usually take days to debug."
 
-### How Kiro Accelerated Development (1:30 - 2:00)
+## Live Product Demo (2:15 - 2:45)
 
-**[Screen: Show Kiro interface with project structure]**
+**[Screen: Full product demonstration]**
 
-"Here's where it gets interesting for developers. We built this entire system using Kiro AI as our development partner."
+"Let's see it in action. I'll visit any website, activate Peekberry, select this header, and say 'make it purple with a shadow'. Instantly applied. Now I'll capture a screenshot and check my dashboard."
 
-**[Show .kiro/specs folder and tasks.md]**
+**[Screen: Switch to webapp dashboard]**
 
-"Kiro helped us break down complex requirements into actionable tasks. Look at this implementation plan - 15 major tasks, each with clear requirements mapping."
+"The webapp shows my editing history, screenshot gallery, and usage statistics. Everything syncs seamlessly between the extension and web app."
 
-**[Show steering files]**
+**[Demo: Show undo/redo, screenshot gallery]**
 
-"We used Kiro's steering system to maintain consistent architecture patterns across our Next.js webapp and Chrome extension."
+"I can undo changes, browse my screenshot collection, and track my editing activity - all built with Kiro's assistance."
 
-### Automated Development Workflow (2:00 - 2:30)
+## Closing Impact (2:45 - 3:00)
 
-**[Show Kiro hooks in action]**
+**[Screen: Split view of Kiro IDE and Peekberry running]**
 
-"But here's the real game-changer - Kiro hooks. Every time we save a file, Kiro automatically runs our tests and updates related components."
+"Peekberry proves that AI-assisted development isn't just about faster coding - it's about building better software. In 40 hours, we created a full-stack application with Chrome extension, authentication, database, and AI integration that would traditionally take a team weeks to build."
 
-**[Demonstrate a file save triggering automated actions]**
+**[Screen: Final product demonstration]**
 
-"When I modify the Chrome extension manifest, Kiro automatically rebuilds the extension and updates our TypeScript types. This automation saved us hours of manual work."
-
-**[Show code generation examples]**
-
-"Kiro generated our entire Chrome extension architecture, React components, and API endpoints. What would take days of boilerplate coding happened in minutes."
-
-## Technical Stack Showcase (2:30 - 2:50)
-
-**[Screen: Show architecture diagram or code structure]**
-
-"The technical foundation is solid: Next.js 15 with React 18 for our webapp, Material UI for components, Chrome Extension Manifest V3 for browser integration, Supabase for data storage, and Clerk for authentication."
-
-**[Show webapp dashboard]**
-
-"Users get a beautiful dashboard to track their editing statistics and manage screenshots, all built with modern React patterns and TanStack Query for optimal performance."
-
-## Closing & Impact (2:50 - 3:00)
-
-**[Screen: Show multiple before/after website edits]**
-
-"Peekberry democratizes web design - no coding required. And Kiro made building it feel like having a senior developer pair programming with us 24/7."
-
-**[End screen with Peekberry logo and tagline]**
-
-"Peekberry: Edit any website, naturally. Built with Kiro: Develop any idea, rapidly."
+"But the real innovation isn't just Peekberry - it's demonstrating how developers and AI can collaborate to turn ambitious ideas into reality. Kiro didn't replace our creativity; it amplified it. The future of development is here, and it's collaborative, intelligent, and incredibly powerful."
 
 ---
 
-## Key Demo Tips
+## Demo Preparation Checklist
 
-### Technical Demonstrations
+### Technical Setup
 
-- Have multiple websites ready for live editing demos
-- Prepare fallback recordings in case of live demo issues
-- Show both simple edits (color changes) and complex ones (layout modifications)
-- Demonstrate error handling when AI can't process a command
+- [ ] Chrome browser with Peekberry extension installed
+- [ ] Test website ready for demonstration
+- [ ] Webapp dashboard logged in and populated with sample data
+- [ ] Kiro interface open with project files visible
+- [ ] Screen recording software configured
 
-### Kiro Development Story
+### Key Demonstration Points
 
-- Screen record actual Kiro interactions during development
-- Show real steering files and how they guided development
-- Demonstrate a live hook execution if possible
-- Highlight specific code generation examples
+- [ ] Element selection and highlighting
+- [ ] Natural language command processing
+- [ ] Real-time DOM manipulation
+- [ ] Screenshot capture functionality
+- [ ] Dashboard statistics and gallery
+- [ ] Undo/redo functionality
+- [ ] Kiro hooks automation
+- [ ] Code generation examples
+
+### Backup Scenarios
+
+- [ ] Pre-recorded clips for complex demonstrations
+- [ ] Static screenshots if live demo fails
+- [ ] Alternative websites for element selection
+- [ ] Sample commands that work reliably
 
 ### Timing Markers
 
-- **0:20**: Start product demo
-- **1:30**: Transition to development story
-- **2:30**: Technical stack overview
-- **2:50**: Strong closing
+- **0:15** - Product hook complete
+- **0:45** - Basic demo finished
+- **1:45** - Kiro development story complete
+- **2:15** - Technical overview done
+- **2:45** - Live demo finished
+- **3:00** - Strong closing delivered
 
-### Engagement Elements
+## Speaking Notes
 
-- Use dynamic transitions between screens
-- Show real websites (not just localhost)
-- Include brief moments of humor or surprise
-- End with a clear call-to-action or memorable tagline
+### Tone and Pace
 
-### Backup Plans
+- Enthusiastic but professional
+- Clear, confident delivery
+- Pause for visual demonstrations
+- Emphasize the Kiro collaboration angle
 
-- Have screenshots ready if live demo fails
-- Prepare multiple example websites
-- Record Kiro interactions beforehand as backup footage
-- Test all demo scenarios multiple times before recording
+### Key Messages
+
+1. **Product Innovation**: Peekberry solves real user problems with natural language website editing
+2. **Development Revolution**: Kiro enabled 40-hour full-stack development that traditionally takes weeks
+3. **Technical Excellence**: Production-ready code with proper architecture, security, and performance
+4. **AI Collaboration**: Demonstrates the future of human-AI development partnerships
+5. **Hackathon Impact**: Shows both innovative product and revolutionary development process
