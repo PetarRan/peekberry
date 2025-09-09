@@ -1,209 +1,610 @@
-// Content script for Peekberry Chrome extension
-// Handles DOM interaction and UI injection
+/**
+ * Peekberry Chrome Extension Content Script
+ * Handles DOM interaction, element selection, and UI injection
+ */
 
-console.log('Peekberry content script loaded');
-
-// Initialize the extension when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializePeekberry);
-} else {
-  initializePeekberry();
+// Types for content script functionality
+interface ElementContext {
+  selector: string;
+  tagName: string;
+  id?: string;
+  className?: string;
+  textContent?: string;
+  computedStyles: Partial<CSSStyleDeclaration>;
+  boundingRect: DOMRect;
 }
 
-function initializePeekberry() {
-  console.log('Initializing Peekberry on:', window.location.href);
-
-  // Create the persistent bubble UI
-  createPeekberryBubble();
-
-  // Initialize element selection system
-  initializeElementSelection();
+interface DOMMutation {
+  type: 'style' | 'attribute' | 'content';
+  selector: string;
+  property: string;
+  value: string;
+  previousValue?: string;
 }
 
-function createPeekberryBubble() {
-  // Check if bubble already exists
-  if (document.getElementById('peekberry-bubble')) {
-    return;
+interface EditAction {
+  id: string;
+  type: 'style' | 'attribute' | 'content';
+  element: ElementContext;
+  mutation: DOMMutation;
+  timestamp: Date;
+  undoable: boolean;
+}
+
+class PeekberryContentScript {
+  private isInitialized = false;
+  private isElementSelectionActive = false;
+  private selectedElements: HTMLElement[] = [];
+  private editHistory: EditAction[] = [];
+  private redoStack: EditAction[] = [];
+  private peekberryBubble: HTMLElement | null = null;
+  private chatPanel: HTMLElement | null = null;
+  private highlightedElement: HTMLElement | null = null;
+
+  // CSS class names for Peekberry elements
+  private readonly CSS_CLASSES = {
+    BUBBLE: 'peekberry-bubble',
+    CHAT_PANEL: 'peekberry-chat-panel',
+    HIGHLIGHT: 'peekberry-highlight',
+    SELECTED: 'peekberry-selected',
+    CONTAINER: 'peekberry-container',
+  };
+
+  constructor() {
+    this.initializeContentScript();
   }
 
-  const bubble = document.createElement('div');
-  bubble.id = 'peekberry-bubble';
-  bubble.innerHTML = '🔍';
-  bubble.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
-    background: #0ea5e9;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 10000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    font-size: 24px;
-    transition: transform 0.2s ease;
-  `;
+  /**
+   * Initialize the content script
+   */
+  private async initializeContentScript(): Promise<void> {
+    if (this.isInitialized) return;
 
-  bubble.addEventListener('mouseenter', () => {
-    bubble.style.transform = 'scale(1.1)';
-  });
-
-  bubble.addEventListener('mouseleave', () => {
-    bubble.style.transform = 'scale(1)';
-  });
-
-  bubble.addEventListener('click', toggleChatPanel);
-
-  document.body.appendChild(bubble);
-}
-
-function toggleChatPanel() {
-  const existingPanel = document.getElementById('peekberry-chat-panel');
-
-  if (existingPanel) {
-    existingPanel.remove();
-  } else {
-    createChatPanel();
-  }
-}
-
-function createChatPanel() {
-  const panel = document.createElement('div');
-  panel.id = 'peekberry-chat-panel';
-  panel.style.cssText = `
-    position: fixed;
-    bottom: 100px;
-    right: 20px;
-    width: 350px;
-    height: 400px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    z-index: 10001;
-    display: flex;
-    flex-direction: column;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  `;
-
-  panel.innerHTML = `
-    <div style="padding: 16px; border-bottom: 1px solid #e5e7eb;">
-      <h3 style="margin: 0; font-size: 16px; font-weight: 600;">Peekberry</h3>
-      <p style="margin: 4px 0 0 0; font-size: 12px; color: #6b7280;">Select an element to edit</p>
-    </div>
-    <div style="flex: 1; padding: 16px; overflow-y: auto;">
-      <div id="peekberry-messages" style="min-height: 200px;">
-        <p style="color: #6b7280; font-size: 14px;">Click on any element on the page to select it, then describe how you'd like to change it.</p>
-      </div>
-    </div>
-    <div style="padding: 16px; border-top: 1px solid #e5e7eb;">
-      <input 
-        type="text" 
-        id="peekberry-input" 
-        placeholder="Describe your edit..."
-        style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"
-      />
-      <div style="display: flex; gap: 8px; margin-top: 8px;">
-        <button id="peekberry-screenshot" style="flex: 1; padding: 6px 12px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; cursor: pointer;">📸 Screenshot</button>
-        <button id="peekberry-undo" style="flex: 1; padding: 6px 12px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; cursor: pointer;">↶ Undo</button>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(panel);
-
-  // Add event listeners
-  const input = document.getElementById('peekberry-input') as HTMLInputElement;
-  input.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      handleEditCommand(input.value);
-      input.value = '';
+    // Check if we're on a valid page (not chrome:// or extension pages)
+    if (this.isInvalidPage()) {
+      return;
     }
-  });
-}
 
-let selectedElement: HTMLElement | null = null;
-let isSelectionMode = false;
+    // Check authentication status
+    const authStatus = await this.checkAuthStatus();
+    if (!authStatus.isAuthenticated) {
+      console.log('Peekberry: User not authenticated, skipping initialization');
+      return;
+    }
 
-function initializeElementSelection() {
-  document.addEventListener('mouseover', handleElementHover);
-  document.addEventListener('click', handleElementClick);
-}
+    this.setupEventListeners();
+    this.createPeekberryBubble();
+    this.isInitialized = true;
 
-function handleElementHover(event: MouseEvent) {
-  if (!isSelectionMode) return;
+    console.log('Peekberry content script initialized');
+  }
 
-  const target = event.target as HTMLElement;
-  if (target.id?.startsWith('peekberry-')) return;
+  /**
+   * Check if current page is invalid for Peekberry
+   */
+  private isInvalidPage(): boolean {
+    const url = window.location.href;
+    return (
+      url.startsWith('chrome://') ||
+      url.startsWith('chrome-extension://') ||
+      url.startsWith('moz-extension://') ||
+      url.includes('peekberry.app')
+    ); // Don't inject on our own webapp
+  }
 
-  // Remove previous highlights
-  document.querySelectorAll('.peekberry-highlight').forEach((el) => {
-    el.classList.remove('peekberry-highlight');
-  });
+  /**
+   * Check authentication status with background script
+   */
+  private async checkAuthStatus(): Promise<{
+    isAuthenticated: boolean;
+    userId?: string;
+  }> {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ type: 'GET_AUTH_STATUS' }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            'Error checking auth status:',
+            chrome.runtime.lastError
+          );
+          resolve({ isAuthenticated: false });
+        } else {
+          resolve(response?.data || { isAuthenticated: false });
+        }
+      });
+    });
+  }
 
-  // Add highlight to current element
-  target.classList.add('peekberry-highlight');
-}
+  /**
+   * Set up event listeners
+   */
+  private setupEventListeners(): void {
+    // Listen for messages from background script or popup
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      this.handleMessage(message, sendResponse);
+      return true;
+    });
 
-function handleElementClick(event: MouseEvent) {
-  const target = event.target as HTMLElement;
+    // Listen for DOM changes to maintain our UI
+    const observer = new MutationObserver((mutations) => {
+      this.handleDOMChanges(mutations);
+    });
 
-  // Ignore clicks on Peekberry UI
-  if (target.id?.startsWith('peekberry-')) return;
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
 
-  // If chat panel is open, enable selection mode
-  if (document.getElementById('peekberry-chat-panel')) {
-    event.preventDefault();
-    event.stopPropagation();
+    // Clean up on page unload
+    window.addEventListener('beforeunload', () => {
+      this.cleanup();
+    });
+  }
 
-    selectedElement = target;
-    isSelectionMode = true;
+  /**
+   * Handle messages from background script or popup
+   */
+  private handleMessage(
+    message: any,
+    sendResponse: (response?: any) => void
+  ): void {
+    switch (message.type) {
+      case 'TOGGLE_ELEMENT_SELECTION':
+        this.toggleElementSelection();
+        sendResponse({ success: true });
+        break;
 
-    // Update UI to show selected element
-    const messages = document.getElementById('peekberry-messages');
-    if (messages) {
-      messages.innerHTML = `
-        <div style="background: #f0f9ff; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
-          <strong>Selected:</strong> ${target.tagName.toLowerCase()}${target.id ? '#' + target.id : ''}${target.className ? '.' + target.className.split(' ').join('.') : ''}
-        </div>
-      `;
+      case 'APPLY_MUTATION':
+        this.applyMutation(message.payload);
+        sendResponse({ success: true });
+        break;
+
+      case 'UNDO_LAST_EDIT':
+        this.undoLastEdit();
+        sendResponse({ success: true });
+        break;
+
+      case 'REDO_EDIT':
+        this.redoEdit();
+        sendResponse({ success: true });
+        break;
+
+      case 'GET_SELECTED_ELEMENTS':
+        const contexts = this.selectedElements.map((el) =>
+          this.getElementContext(el)
+        );
+        sendResponse({ success: true, data: contexts });
+        break;
+
+      case 'CAPTURE_SCREENSHOT':
+        this.captureScreenshot().then((blob) => {
+          sendResponse({ success: true, data: blob });
+        });
+        break;
+
+      default:
+        sendResponse({ success: false, error: 'Unknown message type' });
     }
   }
-}
 
-function handleEditCommand(command: string) {
-  if (!selectedElement || !command.trim()) return;
+  /**
+   * Handle DOM changes to maintain our UI
+   */
+  private handleDOMChanges(mutations: MutationRecord[]): void {
+    // Check if our bubble was removed and re-add it
+    if (this.peekberryBubble && !document.body.contains(this.peekberryBubble)) {
+      this.createPeekberryBubble();
+    }
+  }
 
-  console.log(
-    'Processing edit command:',
-    command,
-    'for element:',
-    selectedElement
-  );
+  /**
+   * Create the persistent Peekberry bubble
+   */
+  private createPeekberryBubble(): void {
+    if (this.peekberryBubble) {
+      this.peekberryBubble.remove();
+    }
 
-  // For now, just log the command - AI processing will be implemented later
-  const messages = document.getElementById('peekberry-messages');
-  if (messages) {
-    messages.innerHTML += `
-      <div style="background: #f9fafb; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 14px;">
-        <strong>You:</strong> ${command}
-      </div>
-      <div style="background: #fef3c7; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 14px;">
-        <strong>Peekberry:</strong> AI processing not yet implemented. Command received for ${selectedElement.tagName.toLowerCase()} element.
+    this.peekberryBubble = document.createElement('div');
+    this.peekberryBubble.className = this.CSS_CLASSES.BUBBLE;
+    this.peekberryBubble.innerHTML = `
+      <div class="peekberry-bubble-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
       </div>
     `;
-    messages.scrollTop = messages.scrollHeight;
+
+    this.peekberryBubble.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.toggleChatPanel();
+    });
+
+    document.body.appendChild(this.peekberryBubble);
+  }
+
+  /**
+   * Toggle the chat panel visibility
+   */
+  private toggleChatPanel(): void {
+    if (this.chatPanel) {
+      this.hideChatPanel();
+    } else {
+      this.showChatPanel();
+    }
+  }
+
+  /**
+   * Show the chat panel
+   */
+  private showChatPanel(): void {
+    if (this.chatPanel) return;
+
+    this.chatPanel = document.createElement('div');
+    this.chatPanel.className = this.CSS_CLASSES.CHAT_PANEL;
+    this.chatPanel.innerHTML = `
+      <div class="peekberry-chat-header">
+        <div class="peekberry-chat-title">Peekberry AI</div>
+        <button class="peekberry-close-btn" type="button">×</button>
+      </div>
+      <div class="peekberry-chat-content">
+        <div class="peekberry-selected-elements">
+          <div class="peekberry-elements-label">Selected Elements:</div>
+          <div class="peekberry-elements-list"></div>
+        </div>
+        <div class="peekberry-chat-input-container">
+          <textarea 
+            class="peekberry-chat-input" 
+            placeholder="Describe the changes you want to make..."
+            rows="3"
+          ></textarea>
+          <div class="peekberry-chat-actions">
+            <button class="peekberry-select-btn" type="button">Select Element</button>
+            <button class="peekberry-screenshot-btn" type="button">📷</button>
+            <button class="peekberry-apply-btn" type="button">Apply</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Add event listeners
+    const closeBtn = this.chatPanel.querySelector('.peekberry-close-btn');
+    closeBtn?.addEventListener('click', () => this.hideChatPanel());
+
+    const selectBtn = this.chatPanel.querySelector('.peekberry-select-btn');
+    selectBtn?.addEventListener('click', () => this.toggleElementSelection());
+
+    const screenshotBtn = this.chatPanel.querySelector(
+      '.peekberry-screenshot-btn'
+    );
+    screenshotBtn?.addEventListener('click', () => this.captureScreenshot());
+
+    const applyBtn = this.chatPanel.querySelector('.peekberry-apply-btn');
+    applyBtn?.addEventListener('click', () => this.processEditCommand());
+
+    document.body.appendChild(this.chatPanel);
+  }
+
+  /**
+   * Hide the chat panel
+   */
+  private hideChatPanel(): void {
+    if (this.chatPanel) {
+      this.chatPanel.remove();
+      this.chatPanel = null;
+    }
+
+    // Also disable element selection if active
+    if (this.isElementSelectionActive) {
+      this.toggleElementSelection();
+    }
+  }
+
+  /**
+   * Toggle element selection mode
+   */
+  private toggleElementSelection(): void {
+    this.isElementSelectionActive = !this.isElementSelectionActive;
+
+    if (this.isElementSelectionActive) {
+      this.startElementSelection();
+    } else {
+      this.stopElementSelection();
+    }
+  }
+
+  /**
+   * Start element selection mode
+   */
+  private startElementSelection(): void {
+    document.addEventListener('mouseover', this.handleMouseOver);
+    document.addEventListener('mouseout', this.handleMouseOut);
+    document.addEventListener('click', this.handleElementClick);
+    document.body.style.cursor = 'crosshair';
+  }
+
+  /**
+   * Stop element selection mode
+   */
+  private stopElementSelection(): void {
+    document.removeEventListener('mouseover', this.handleMouseOver);
+    document.removeEventListener('mouseout', this.handleMouseOut);
+    document.removeEventListener('click', this.handleElementClick);
+    document.body.style.cursor = '';
+
+    if (this.highlightedElement) {
+      this.removeHighlight(this.highlightedElement);
+      this.highlightedElement = null;
+    }
+  }
+
+  /**
+   * Handle mouse over for element highlighting
+   */
+  private handleMouseOver = (e: MouseEvent): void => {
+    if (!this.isElementSelectionActive) return;
+
+    const target = e.target as HTMLElement;
+    if (this.isPeekberryElement(target)) return;
+
+    if (this.highlightedElement && this.highlightedElement !== target) {
+      this.removeHighlight(this.highlightedElement);
+    }
+
+    this.highlightElement(target);
+    this.highlightedElement = target;
+  };
+
+  /**
+   * Handle mouse out for element highlighting
+   */
+  private handleMouseOut = (e: MouseEvent): void => {
+    if (!this.isElementSelectionActive) return;
+
+    const target = e.target as HTMLElement;
+    if (this.isPeekberryElement(target)) return;
+
+    this.removeHighlight(target);
+    if (this.highlightedElement === target) {
+      this.highlightedElement = null;
+    }
+  };
+
+  /**
+   * Handle element click for selection
+   */
+  private handleElementClick = (e: MouseEvent): void => {
+    if (!this.isElementSelectionActive) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const target = e.target as HTMLElement;
+    if (this.isPeekberryElement(target)) return;
+
+    this.selectElement(target);
+    this.toggleElementSelection(); // Stop selection mode after selecting
+  };
+
+  /**
+   * Check if element is part of Peekberry UI
+   */
+  private isPeekberryElement(element: HTMLElement): boolean {
+    return (
+      element.closest(`.${this.CSS_CLASSES.CONTAINER}`) !== null ||
+      element.classList.contains(this.CSS_CLASSES.BUBBLE) ||
+      element.classList.contains(this.CSS_CLASSES.CHAT_PANEL)
+    );
+  }
+
+  /**
+   * Highlight an element
+   */
+  private highlightElement(element: HTMLElement): void {
+    element.classList.add(this.CSS_CLASSES.HIGHLIGHT);
+  }
+
+  /**
+   * Remove highlight from an element
+   */
+  private removeHighlight(element: HTMLElement): void {
+    element.classList.remove(this.CSS_CLASSES.HIGHLIGHT);
+  }
+
+  /**
+   * Select an element
+   */
+  private selectElement(element: HTMLElement): void {
+    if (!this.selectedElements.includes(element)) {
+      this.selectedElements.push(element);
+      element.classList.add(this.CSS_CLASSES.SELECTED);
+      this.updateSelectedElementsDisplay();
+    }
+  }
+
+  /**
+   * Update the display of selected elements in chat panel
+   */
+  private updateSelectedElementsDisplay(): void {
+    if (!this.chatPanel) return;
+
+    const elementsList = this.chatPanel.querySelector(
+      '.peekberry-elements-list'
+    );
+    if (!elementsList) return;
+
+    elementsList.innerHTML = '';
+
+    this.selectedElements.forEach((element, index) => {
+      const tag = document.createElement('div');
+      tag.className = 'peekberry-element-tag';
+      tag.innerHTML = `
+        <span>${this.getElementDisplayName(element)}</span>
+        <button class="peekberry-remove-element" data-index="${index}">×</button>
+      `;
+
+      const removeBtn = tag.querySelector('.peekberry-remove-element');
+      removeBtn?.addEventListener('click', () =>
+        this.removeSelectedElement(index)
+      );
+
+      elementsList.appendChild(tag);
+    });
+  }
+
+  /**
+   * Get display name for an element
+   */
+  private getElementDisplayName(element: HTMLElement): string {
+    const tagName = element.tagName.toLowerCase();
+    const id = element.id ? `#${element.id}` : '';
+    const className = element.className
+      ? `.${element.className.split(' ')[0]}`
+      : '';
+    return `${tagName}${id}${className}`;
+  }
+
+  /**
+   * Remove a selected element
+   */
+  private removeSelectedElement(index: number): void {
+    const element = this.selectedElements[index];
+    if (element) {
+      element.classList.remove(this.CSS_CLASSES.SELECTED);
+      this.selectedElements.splice(index, 1);
+      this.updateSelectedElementsDisplay();
+    }
+  }
+
+  /**
+   * Get element context for AI processing
+   */
+  private getElementContext(element: HTMLElement): ElementContext {
+    const rect = element.getBoundingClientRect();
+    const computedStyles = window.getComputedStyle(element);
+
+    return {
+      selector: this.generateSelector(element),
+      tagName: element.tagName.toLowerCase(),
+      id: element.id || undefined,
+      className: element.className || undefined,
+      textContent: element.textContent?.trim() || undefined,
+      computedStyles: {
+        color: computedStyles.color,
+        backgroundColor: computedStyles.backgroundColor,
+        fontSize: computedStyles.fontSize,
+        fontFamily: computedStyles.fontFamily,
+        display: computedStyles.display,
+        position: computedStyles.position,
+      },
+      boundingRect: rect,
+    };
+  }
+
+  /**
+   * Generate a unique selector for an element
+   */
+  private generateSelector(element: HTMLElement): string {
+    if (element.id) {
+      return `#${element.id}`;
+    }
+
+    const path: string[] = [];
+    let current = element;
+
+    while (current && current !== document.body) {
+      let selector = current.tagName.toLowerCase();
+
+      if (current.className) {
+        selector += `.${current.className.split(' ')[0]}`;
+      }
+
+      path.unshift(selector);
+      current = current.parentElement!;
+    }
+
+    return path.join(' > ');
+  }
+
+  /**
+   * Process edit command (placeholder for now)
+   */
+  private async processEditCommand(): Promise<void> {
+    if (!this.chatPanel) return;
+
+    const input = this.chatPanel.querySelector(
+      '.peekberry-chat-input'
+    ) as HTMLTextAreaElement;
+    const command = input?.value.trim();
+
+    if (!command || this.selectedElements.length === 0) {
+      alert('Please select elements and enter a command');
+      return;
+    }
+
+    console.log('Processing command:', command);
+    console.log('Selected elements:', this.selectedElements.length);
+
+    // This will be implemented in later tasks
+    // For now, just clear the input
+    if (input) {
+      input.value = '';
+    }
+  }
+
+  /**
+   * Apply DOM mutation (placeholder for now)
+   */
+  private applyMutation(mutation: DOMMutation): void {
+    console.log('Applying mutation:', mutation);
+    // This will be implemented in later tasks
+  }
+
+  /**
+   * Undo last edit (placeholder for now)
+   */
+  private undoLastEdit(): void {
+    console.log('Undo last edit');
+    // This will be implemented in later tasks
+  }
+
+  /**
+   * Redo edit (placeholder for now)
+   */
+  private redoEdit(): void {
+    console.log('Redo edit');
+    // This will be implemented in later tasks
+  }
+
+  /**
+   * Capture screenshot (placeholder for now)
+   */
+  private async captureScreenshot(): Promise<Blob | null> {
+    console.log('Capturing screenshot');
+    // This will be implemented in later tasks
+    return null;
+  }
+
+  /**
+   * Clean up on page unload
+   */
+  private cleanup(): void {
+    this.stopElementSelection();
+    if (this.peekberryBubble) {
+      this.peekberryBubble.remove();
+    }
+    if (this.chatPanel) {
+      this.chatPanel.remove();
+    }
   }
 }
 
-// Add CSS for element highlighting
-const style = document.createElement('style');
-style.textContent = `
-  .peekberry-highlight {
-    outline: 2px solid #0ea5e9 !important;
-    outline-offset: 2px !important;
-  }
-`;
-document.head.appendChild(style);
+// Initialize content script when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    new PeekberryContentScript();
+  });
+} else {
+  new PeekberryContentScript();
+}

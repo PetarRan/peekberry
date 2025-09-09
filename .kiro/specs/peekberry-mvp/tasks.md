@@ -59,21 +59,22 @@
   - Add error handling for AI processing failures
   - _Requirements: 3.1, 3.2, 3.6_
 
-- [ ] 7. Implement screenshot upload and storage
+- [x] 7. Implement screenshot upload and storage
   - Create API endpoint for screenshot upload with metadata
   - Implement Supabase storage integration for image files
   - Build thumbnail generation and image optimization
   - Update user statistics when screenshots are uploaded
+  - Keep simple and stick to structure.
   - _Requirements: 5.2, 5.3, 5.5, 7.1_
 
-- [ ] 8. Build Chrome extension foundation
-- [ ] 8.1 Create extension manifest and basic structure
+- [x] 8. Build Chrome extension foundation
+- [x] 8.1 Create extension manifest and basic structure
   - Set up manifest.json with required permissions and content scripts
   - Create basic file structure for content script, background script, and styles
   - Implement extension installation and initialization
   - _Requirements: 2.1, 8.1_
 
-- [ ] 8.2 Implement authentication sync for extension
+- [x] 8.2 Implement authentication sync for extension
   - Create background script functionality to store and retrieve auth tokens
   - Build communication between webapp and extension for token sync
   - Implement authentication status checking and error handling

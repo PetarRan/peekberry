@@ -1,19 +1,330 @@
-/* Peekberry content script styles */
+/**
+ * Peekberry Chrome Extension Styles
+ * Dark-themed, minimalist UI following extension-ui.md guidelines
+ */
 
+/* Reset and base styles for Peekberry elements */
+.peekberry-container,
+.peekberry-container * {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  line-height: 1.4;
+}
+
+/* Persistent bubble in bottom-right corner */
+.peekberry-bubble {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  width: 56px !important;
+  height: 56px !important;
+  background: #0D0D0D !important;
+  border: 2px solid #333333 !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+
+.peekberry-bubble:hover {
+  background: #1E1E1E !important;
+  transform: scale(1.05) !important;
+}
+
+.peekberry-bubble-icon {
+  color: #F0F0F0 !important;
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.peekberry-bubble-icon svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Chat panel - slide-in from right */
+.peekberry-chat-panel {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  width: 380px !important;
+  max-height: calc(100vh - 40px) !important;
+  background: #1E1E1E !important;
+  border: 1px solid #333333 !important;
+  border-radius: 12px !important;
+  z-index: 2147483646 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  animation: peekberrySlideIn 0.3s ease-out !important;
+}
+
+@keyframes peekberrySlideIn {
+  from {
+    transform: translateX(100%) !important;
+    opacity: 0 !important;
+  }
+  to {
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Chat panel header */
+.peekberry-chat-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 16px 20px !important;
+  background: #0D0D0D !important;
+  border-bottom: 1px solid #333333 !important;
+}
+
+.peekberry-chat-title {
+  color: #F0F0F0 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+}
+
+.peekberry-close-btn {
+  background: none !important;
+  border: none !important;
+  color: #AAAAAA !important;
+  font-size: 24px !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+}
+
+.peekberry-close-btn:hover {
+  background: #333333 !important;
+  color: #F0F0F0 !important;
+}
+
+/* Chat panel content */
+.peekberry-chat-content {
+  padding: 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  flex: 1 !important;
+  overflow-y: auto !important;
+}
+
+/* Selected elements section */
+.peekberry-selected-elements {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.peekberry-elements-label {
+  color: #AAAAAA !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.peekberry-elements-list {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+}
+
+.peekberry-element-tag {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: #333333 !important;
+  color: #F0F0F0 !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+.peekberry-remove-element {
+  background: none !important;
+  border: none !important;
+  color: #AAAAAA !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  width: 16px !important;
+  height: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 2px !important;
+  font-size: 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+.peekberry-remove-element:hover {
+  background: #555555 !important;
+  color: #F0F0F0 !important;
+}
+
+/* Chat input container */
+.peekberry-chat-input-container {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.peekberry-chat-input {
+  background: #0D0D0D !important;
+  border: 1px solid #333333 !important;
+  border-radius: 8px !important;
+  color: #F0F0F0 !important;
+  padding: 12px !important;
+  font-size: 14px !important;
+  font-family: inherit !important;
+  resize: vertical !important;
+  min-height: 80px !important;
+  outline: none !important;
+  transition: border-color 0.2s ease !important;
+}
+
+.peekberry-chat-input:focus {
+  border-color: #555555 !important;
+}
+
+.peekberry-chat-input::placeholder {
+  color: #666666 !important;
+}
+
+/* Chat actions */
+.peekberry-chat-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+.peekberry-select-btn,
+.peekberry-screenshot-btn,
+.peekberry-apply-btn {
+  border: none !important;
+  border-radius: 20px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  outline: none !important;
+  font-family: inherit !important;
+}
+
+.peekberry-select-btn {
+  background: #2C2C2C !important;
+  color: #F0F0F0 !important;
+  padding: 8px 16px !important;
+}
+
+.peekberry-select-btn:hover {
+  background: #404040 !important;
+}
+
+.peekberry-screenshot-btn {
+  background: #2C2C2C !important;
+  color: #F0F0F0 !important;
+  padding: 8px 12px !important;
+  width: 36px !important;
+  height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.peekberry-screenshot-btn:hover {
+  background: #404040 !important;
+}
+
+.peekberry-apply-btn {
+  background: #000000 !important;
+  color: #FFFFFF !important;
+  padding: 8px 20px !important;
+  margin-left: auto !important;
+}
+
+.peekberry-apply-btn:hover {
+  background: #333333 !important;
+}
+
+/* Element highlighting */
 .peekberry-highlight {
-  outline: 2px solid #0ea5e9 !important;
+  outline: 2px solid #3B82F6 !important;
   outline-offset: 2px !important;
-  transition: outline 0.1s ease !important;
+  background-color: rgba(59, 130, 246, 0.1) !important;
 }
 
-#peekberry-bubble {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+.peekberry-selected {
+  outline: 2px solid #22C55E !important;
+  outline-offset: 2px !important;
+  background-color: rgba(34, 197, 94, 0.1) !important;
 }
 
-#peekberry-chat-panel {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .peekberry-chat-panel {
+    width: calc(100vw - 40px) !important;
+    max-width: 380px !important;
+  }
+  
+  .peekberry-bubble {
+    bottom: 16px !important;
+    right: 16px !important;
+  }
 }
 
-#peekberry-chat-panel * {
-  box-sizing: border-box !important;
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .peekberry-bubble {
+    border-width: 3px !important;
+  }
+  
+  .peekberry-chat-panel {
+    border-width: 2px !important;
+  }
+  
+  .peekberry-highlight {
+    outline-width: 3px !important;
+  }
+  
+  .peekberry-selected {
+    outline-width: 3px !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .peekberry-bubble,
+  .peekberry-close-btn,
+  .peekberry-remove-element,
+  .peekberry-select-btn,
+  .peekberry-screenshot-btn,
+  .peekberry-apply-btn,
+  .peekberry-chat-input {
+    transition: none !important;
+  }
+  
+  .peekberry-chat-panel {
+    animation: none !important;
+  }
+  
+  .peekberry-bubble:hover {
+    transform: none !important;
+  }
 }

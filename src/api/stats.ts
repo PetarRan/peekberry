@@ -1,62 +1,34 @@
 // Client-side stats API
-
-export interface UserStats {
-  editsThisMonth: number;
-  screenshotsThisMonth: number;
-  totalEdits: number;
-  totalScreenshots: number;
-  lastActivity: string;
-}
+import type { UserStats } from '@/schema';
+import { UserStatsService } from '@/utils/api/userStats';
+import { supabase } from '@/utils/supabase/client';
 
 export interface StatsAPI {
-  getUserStats(): Promise<UserStats>;
-  incrementEditCount(): Promise<UserStats>;
-  incrementScreenshotCount(): Promise<UserStats>;
+  getUserStats(clerkUserId: string): Promise<UserStats>;
+  incrementEditCount(clerkUserId: string): Promise<UserStats>;
+  incrementScreenshotCount(clerkUserId: string): Promise<UserStats>;
 }
 
 export const statsAPI: StatsAPI = {
-  async getUserStats(): Promise<UserStats> {
-    const response = await fetch('/api/stats');
+  async getUserStats(clerkUserId: string): Promise<UserStats> {
+    const stats = await UserStatsService.getUserStats(supabase, clerkUserId);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to fetch user stats');
+    if (!stats) {
+      // Create initial stats if none exist
+      return await UserStatsService.createUserStats(supabase, clerkUserId);
     }
 
-    return await response.json();
+    return stats;
   },
 
-  async incrementEditCount(): Promise<UserStats> {
-    const response = await fetch('/api/stats', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ type: 'edit' }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to increment edit count');
-    }
-
-    return await response.json();
+  async incrementEditCount(clerkUserId: string): Promise<UserStats> {
+    return await UserStatsService.incrementEditCount(supabase, clerkUserId);
   },
 
-  async incrementScreenshotCount(): Promise<UserStats> {
-    const response = await fetch('/api/stats', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ type: 'screenshot' }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to increment screenshot count');
-    }
-
-    return await response.json();
+  async incrementScreenshotCount(clerkUserId: string): Promise<UserStats> {
+    return await UserStatsService.incrementScreenshotCount(
+      supabase,
+      clerkUserId
+    );
   },
 };
