@@ -35,7 +35,7 @@
 
 - [ ] 5. Build webapp dashboard and UI components
 - [ ] 5.1 Create dashboard layout and navigation
-  - Build main dashboard layout with MUI components
+  - Build main dashboard layout with MUI components following webapp-ui.md design guidelines
   - Implement responsive navigation and user menu
   - Create account settings page with logout functionality
   - _Requirements: 6.5_
@@ -87,16 +87,16 @@
   - _Requirements: 2.4, 2.5, 2.6_
 
 - [ ] 9.2 Build persistent bubble UI
-  - Create floating bubble component positioned in bottom-right corner
+  - Create floating bubble component positioned in bottom-right corner following extension-ui.md design guidelines
   - Implement bubble click handler to open/close chat panel
   - Style bubble to be non-intrusive and work across different websites
   - _Requirements: 2.1, 2.2_
 
 - [ ] 10. Implement chat panel and user interface
-  - Create expandable chat panel with input box and controls
-  - Build chat history display for session-only edit tracking
-  - Implement element selection display in chat context
-  - Add screenshot capture button and export functionality
+  - Create expandable chat panel with dark theme following extension-ui.md design guidelines
+  - Build chat history display for session-only edit tracking with slide-in modal interface
+  - Implement element selection display as interactive tags/chips in chat context
+  - Add screenshot capture button and export functionality with proper icon styling
   - _Requirements: 2.2, 2.3, 5.1_
 
 - [ ] 11. Build edit processing and DOM manipulation

@@ -1,4 +1,4 @@
-import { auth, currentUser } from '@clerk/nextjs';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

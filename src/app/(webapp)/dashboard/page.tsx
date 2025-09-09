@@ -1,9 +1,9 @@
 import { Box, Typography, Container } from '@mui/material';
-import { auth, currentUser } from '@clerk/nextjs';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 
 export default async function DashboardPage() {
-  const { userId } = auth();
+  const { userId } = await auth();
   const user = await currentUser();
 
   // Redirect to sign-in if not authenticated

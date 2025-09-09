@@ -1,4 +1,4 @@
-import { currentUser } from '@clerk/nextjs';
+import { currentUser } from '@clerk/nextjs/server';
 
 export interface User {
   id: string;

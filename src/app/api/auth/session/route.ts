@@ -1,4 +1,4 @@
-import { auth, currentUser } from '@clerk/nextjs';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(request: NextRequest) {
   try {
-    const { userId, sessionId } = auth();
+    const { userId, sessionId } = await auth();
 
     if (!userId || !sessionId) {
       return NextResponse.json(

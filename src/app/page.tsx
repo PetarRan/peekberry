@@ -37,7 +37,7 @@ export default function HomePage() {
           </SignedIn>
 
           <SignedOut>
-            <SignInButton mode="redirect" redirectUrl="/dashboard">
+            <SignInButton forceRedirectUrl="/dashboard">
               <Button variant="contained" size="large">
                 Get Started
               </Button>

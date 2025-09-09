@@ -41,7 +41,7 @@ export function AppNavigation() {
           </SignedIn>
 
           <SignedOut>
-            <SignInButton mode="redirect">
+            <SignInButton>
               <Button color="inherit">Sign In</Button>
             </SignInButton>
             <Button
