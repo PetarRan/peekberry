@@ -1,4 +1,4 @@
-import { currentUser } from '@clerk/nextjs/server';
+// Client-side auth API - only handles API calls, no server imports
 
 export interface User {
   id: string;
@@ -28,7 +28,6 @@ export interface SessionResponse {
 }
 
 export interface AuthAPI {
-  getCurrentUser(): Promise<User | null>;
   generateAuthToken(): Promise<AuthTokenResponse>;
   validateToken(token: string): Promise<{
     valid: boolean;
@@ -41,26 +40,6 @@ export interface AuthAPI {
 }
 
 export const authAPI: AuthAPI = {
-  async getCurrentUser() {
-    try {
-      const user = await currentUser();
-      if (!user) return null;
-
-      return {
-        id: user.id,
-        email: user.emailAddresses[0]?.emailAddress || '',
-        firstName: user.firstName,
-        lastName: user.lastName,
-        imageUrl: user.imageUrl,
-        createdAt: user.createdAt,
-        lastSignInAt: user.lastSignInAt,
-      };
-    } catch (error) {
-      console.error('Error getting current user:', error);
-      return null;
-    }
-  },
-
   async generateAuthToken(): Promise<AuthTokenResponse> {
     const response = await fetch('/api/auth/token', {
       method: 'POST',

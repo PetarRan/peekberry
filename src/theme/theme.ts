@@ -33,12 +33,12 @@ export const theme = createTheme({
     },
     grey: colors.gray,
     background: {
-      default: colors.gray[50],
+      default: colors.gray[50], // #F8FAFC - Primary background
       paper: '#ffffff',
     },
     text: {
-      primary: colors.gray[900],
-      secondary: colors.gray[600],
+      primary: colors.gray[800], // #1E293B - Dark charcoal gray for headings and main text
+      secondary: colors.gray[500], // #64748B - Lighter gray for subheadings and descriptive text
     },
   },
   typography: {

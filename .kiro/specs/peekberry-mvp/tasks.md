@@ -33,20 +33,20 @@
   - Create user profile and account settings endpoints
   - _Requirements: 1.2, 1.4_
 
-- [ ] 5. Build webapp dashboard and UI components
-- [ ] 5.1 Create dashboard layout and navigation
+- [x] 5. Build webapp dashboard and UI components
+- [x] 5.1 Create dashboard layout and navigation
   - Build main dashboard layout with MUI components following webapp-ui.md design guidelines
   - Implement responsive navigation and user menu
   - Create account settings page with logout functionality
   - _Requirements: 6.5_
 
-- [ ] 5.2 Implement user statistics display
+- [x] 5.2 Implement user statistics display
   - Create stats cards component for displaying edit and screenshot counts
   - Build API endpoints to fetch and update user statistics
   - Implement real-time counter updates using React Query
   - _Requirements: 6.1, 6.2, 6.6_
 
-- [ ] 5.3 Build screenshot gallery and management
+- [x] 5.3 Build screenshot gallery and management
   - Create screenshot grid component with thumbnails and metadata
   - Implement screenshot viewing, downloading, and deletion functionality
   - Build pagination and filtering for screenshot list

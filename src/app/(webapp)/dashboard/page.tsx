@@ -1,6 +1,9 @@
-import { Box, Typography, Container } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { StatsDashboard } from '@/components/shared/StatsDashboard';
+import { ScreenshotGallery } from '@/components/shared/ScreenshotGallery';
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -11,33 +14,49 @@ export default async function DashboardPage() {
     redirect('/sign-in');
   }
 
+  // Placeholder sidebar content - will be implemented in later tasks
+  const sidebarContent = (
+    <Box>
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+        AI Prompt
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Coming soon: AI-powered editing interface
+      </Typography>
+
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mt: 3 }}>
+        Recent Changes
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        Coming soon: Recent editing activity
+      </Typography>
+    </Box>
+  );
+
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ py: 4 }}>
-        <Typography variant="h2" component="h1" gutterBottom>
-          Welcome back, {user?.firstName || 'User'}!
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          Here's your Peekberry dashboard where you can view your editing
-          statistics and manage your screenshots.
+    <DashboardLayout sidebar={sidebarContent}>
+      <Box>
+        {/* Main Heading */}
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
+          sx={{ fontWeight: 'bold', color: 'text.primary' }}
+        >
+          DOM Screenshots
         </Typography>
 
-        {/* Placeholder for stats and screenshots - will be implemented in later tasks */}
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            Coming Soon:
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            • Editing statistics and activity counters
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            • Screenshot gallery and management
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            • Account settings and preferences
-          </Typography>
-        </Box>
+        {/* Subtext */}
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+          Screenshots of your live website taken after applying changes
+        </Typography>
+
+        {/* User Statistics */}
+        <StatsDashboard />
+
+        {/* Screenshot Gallery */}
+        <ScreenshotGallery />
       </Box>
-    </Container>
+    </DashboardLayout>
   );
 }

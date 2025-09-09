@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '@/utils/supabase/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
   ScreenshotRow,
   ScreenshotInsert,
@@ -15,9 +15,10 @@ export class ScreenshotService {
    * Get all screenshots for a user
    */
   static async getScreenshotsByUserId(
+    supabase: SupabaseClient,
     clerkUserId: string
   ): Promise<Screenshot[]> {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('screenshots')
       .select('*')
       .eq('clerk_user_id', clerkUserId)
@@ -34,10 +35,11 @@ export class ScreenshotService {
    * Get a single screenshot by ID
    */
   static async getScreenshotById(
+    supabase: SupabaseClient,
     id: string,
     clerkUserId: string
   ): Promise<Screenshot | null> {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('screenshots')
       .select('*')
       .eq('id', id)
@@ -58,11 +60,12 @@ export class ScreenshotService {
    * Create a new screenshot record
    */
   static async createScreenshot(
+    supabase: SupabaseClient,
     screenshot: Omit<Screenshot, 'id' | 'createdAt'>
   ): Promise<Screenshot> {
     const insertData = transformScreenshotToDB(screenshot);
 
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('screenshots')
       .insert(insertData)
       .select()
@@ -79,11 +82,12 @@ export class ScreenshotService {
    * Update a screenshot record
    */
   static async updateScreenshot(
+    supabase: SupabaseClient,
     id: string,
     clerkUserId: string,
     updates: Partial<ScreenshotUpdate>
   ): Promise<Screenshot> {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('screenshots')
       .update(updates)
       .eq('id', id)
@@ -102,10 +106,11 @@ export class ScreenshotService {
    * Delete a screenshot record
    */
   static async deleteScreenshot(
+    supabase: SupabaseClient,
     id: string,
     clerkUserId: string
   ): Promise<void> {
-    const { error } = await supabaseAdmin
+    const { error } = await supabase
       .from('screenshots')
       .delete()
       .eq('id', id)
@@ -120,6 +125,7 @@ export class ScreenshotService {
    * Get screenshots with pagination
    */
   static async getScreenshotsPaginated(
+    supabase: SupabaseClient,
     clerkUserId: string,
     page: number = 1,
     limit: number = 20
@@ -127,7 +133,7 @@ export class ScreenshotService {
     const offset = (page - 1) * limit;
 
     // Get total count
-    const { count, error: countError } = await supabaseAdmin
+    const { count, error: countError } = await supabase
       .from('screenshots')
       .select('*', { count: 'exact', head: true })
       .eq('clerk_user_id', clerkUserId);
@@ -137,7 +143,7 @@ export class ScreenshotService {
     }
 
     // Get paginated data
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('screenshots')
       .select('*')
       .eq('clerk_user_id', clerkUserId)
