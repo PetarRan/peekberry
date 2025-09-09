@@ -39,10 +39,12 @@ export function ScreenshotGallery({
   const filteredScreenshots =
     data?.screenshots.filter(
       (screenshot) =>
-        screenshot.pageTitle
+        screenshot.metadata.pageTitle
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
-        screenshot.pageUrl.toLowerCase().includes(searchQuery.toLowerCase())
+        screenshot.metadata.pageUrl
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
     ) || [];
 
   if (isLoading) {

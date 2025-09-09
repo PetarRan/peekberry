@@ -1,5 +1,8 @@
 // Client-side stats API
 import type { UserStats } from '@/schema';
+
+// Re-export types for components
+export type { UserStats };
 import { UserStatsService } from '@/utils/api/userStats';
 import { supabase } from '@/utils/supabase/client';
 

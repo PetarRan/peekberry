@@ -32,7 +32,7 @@ export class UserStatsService {
       throw new Error(`Failed to fetch user stats: ${error.message}`);
     }
 
-    return transformUserStatsFromDB(data);
+    return transformUserStatsFromDB(data as UserStatsRow);
   }
 
   /**
@@ -60,7 +60,7 @@ export class UserStatsService {
       throw new Error(`Failed to create user stats: ${error.message}`);
     }
 
-    return transformUserStatsFromDB(data);
+    return transformUserStatsFromDB(data as UserStatsRow);
   }
 
   /**
@@ -78,7 +78,7 @@ export class UserStatsService {
       throw new Error(`Failed to increment edit count: ${error.message}`);
     }
 
-    return transformUserStatsFromDB(data);
+    return transformUserStatsFromDB(data as UserStatsRow);
   }
 
   /**
@@ -96,7 +96,7 @@ export class UserStatsService {
       throw new Error(`Failed to increment screenshot count: ${error.message}`);
     }
 
-    return transformUserStatsFromDB(data);
+    return transformUserStatsFromDB(data as UserStatsRow);
   }
 
   /**
@@ -124,7 +124,7 @@ export class UserStatsService {
       throw new Error(`Failed to update user stats: ${error.message}`);
     }
 
-    return transformUserStatsFromDB(data);
+    return transformUserStatsFromDB(data as UserStatsRow);
   }
 
   /**

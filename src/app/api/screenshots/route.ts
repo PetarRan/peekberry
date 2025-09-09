@@ -62,6 +62,10 @@ export async function POST(request: NextRequest) {
 
     // TODO: Implement screenshot upload logic
     const body = await request.json();
+    console.log('Screenshot upload request received:', {
+      userId,
+      bodyKeys: Object.keys(body),
+    });
 
     return NextResponse.json({
       success: true,

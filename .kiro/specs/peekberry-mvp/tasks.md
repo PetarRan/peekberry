@@ -80,14 +80,14 @@
   - Implement authentication status checking and error handling
   - _Requirements: 1.3, 1.4, 1.6_
 
-- [ ] 9. Build DOM interaction and element selection
-- [ ] 9.1 Create element highlighting and selection system
+- [x] 9. Build DOM interaction and element selection
+- [x] 9.1 Create element highlighting and selection system
   - Implement hover highlighting with visual outlines for page elements
   - Build click-to-select functionality that captures element context
   - Create element context extraction (selector, styles, position, content)
   - _Requirements: 2.4, 2.5, 2.6_
 
-- [ ] 9.2 Build persistent bubble UI
+- [x] 9.2 Build persistent bubble UI
   - Create floating bubble component positioned in bottom-right corner following extension-ui.md design guidelines
   - Implement bubble click handler to open/close chat panel
   - Style bubble to be non-intrusive and work across different websites

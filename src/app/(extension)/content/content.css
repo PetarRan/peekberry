@@ -11,7 +11,7 @@
   line-height: 1.4;
 }
 
-/* Persistent bubble in bottom-right corner */
+/* Persistent bubble in bottom-right corner following extension-ui.md */
 .peekberry-bubble {
   position: fixed !important;
   bottom: 20px !important;
@@ -26,24 +26,63 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
   transition: all 0.2s ease !important;
+  outline: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
-.peekberry-bubble:hover {
+.peekberry-bubble:hover,
+.peekberry-bubble:focus {
   background: #1E1E1E !important;
+  border-color: #555555 !important;
   transform: scale(1.05) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+.peekberry-bubble:active {
+  transform: scale(0.95) !important;
+  transition: all 0.1s ease !important;
 }
 
 .peekberry-bubble-icon {
   color: #F0F0F0 !important;
   width: 24px !important;
   height: 24px !important;
+  pointer-events: none !important;
 }
 
 .peekberry-bubble-icon svg {
   width: 100% !important;
   height: 100% !important;
+  pointer-events: none !important;
+}
+
+/* Bubble positioning variants */
+.peekberry-bubble.peekberry-bubble-left {
+  right: auto !important;
+  left: 20px !important;
+}
+
+/* Ensure bubble doesn't interfere with page scrollbars */
+@media (max-width: 768px) {
+  .peekberry-bubble {
+    bottom: 16px !important;
+    right: 16px !important;
+    width: 48px !important;
+    height: 48px !important;
+  }
+  
+  .peekberry-bubble-icon {
+    width: 20px !important;
+    height: 20px !important;
+  }
+}
+
+/* Handle cases where page has fixed elements in bottom-right */
+.peekberry-bubble.peekberry-bubble-conflict {
+  bottom: 80px !important;
 }
 
 /* Chat panel - slide-in from right */
@@ -263,17 +302,64 @@
   background: #333333 !important;
 }
 
-/* Element highlighting */
+/* Element highlighting with enhanced visual feedback */
 .peekberry-highlight {
   outline: 2px solid #3B82F6 !important;
   outline-offset: 2px !important;
-  background-color: rgba(59, 130, 246, 0.1) !important;
+  background-color: rgba(59, 130, 246, 0.08) !important;
+  position: relative !important;
+  z-index: 2147483640 !important;
+  transition: all 0.15s ease !important;
+}
+
+.peekberry-highlight::before {
+  content: '' !important;
+  position: absolute !important;
+  top: -4px !important;
+  left: -4px !important;
+  right: -4px !important;
+  bottom: -4px !important;
+  border: 1px dashed #3B82F6 !important;
+  border-radius: 4px !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
 }
 
 .peekberry-selected {
   outline: 2px solid #22C55E !important;
   outline-offset: 2px !important;
-  background-color: rgba(34, 197, 94, 0.1) !important;
+  background-color: rgba(34, 197, 94, 0.08) !important;
+  position: relative !important;
+  z-index: 2147483641 !important;
+}
+
+.peekberry-selected::before {
+  content: '' !important;
+  position: absolute !important;
+  top: -4px !important;
+  left: -4px !important;
+  right: -4px !important;
+  bottom: -4px !important;
+  border: 1px solid #22C55E !important;
+  border-radius: 4px !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+}
+
+/* Element info tooltip (appears on hover) */
+.peekberry-element-info {
+  position: absolute !important;
+  background: #0D0D0D !important;
+  color: #F0F0F0 !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-family: monospace !important;
+  border: 1px solid #333333 !important;
+  z-index: 2147483645 !important;
+  pointer-events: none !important;
+  white-space: nowrap !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* Responsive adjustments */

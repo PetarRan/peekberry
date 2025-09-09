@@ -97,7 +97,11 @@ async function testTokenVerification() {
 
 async function testProtectedEndpoints() {
   const endpoints = [
-    { method: 'GET', path: '/api/screenshots', description: 'Get screenshots' },
+    {
+      method: 'GET',
+      path: '/api/screenshots',
+      description: 'Get screenshots',
+    },
     {
       method: 'POST',
       path: '/api/screenshots',

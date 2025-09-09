@@ -73,7 +73,7 @@ export function ScreenshotCard({ screenshot }: ScreenshotCardProps) {
     setDeleteDialogOpen(false);
   };
 
-  const formatTimestamp = (timestamp: string) => {
+  const formatTimestamp = (timestamp: string | Date) => {
     const date = new Date(timestamp);
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
@@ -125,7 +125,7 @@ export function ScreenshotCard({ screenshot }: ScreenshotCardProps) {
                   whiteSpace: 'nowrap',
                 }}
               >
-                {screenshot.pageTitle || 'Untitled'}
+                {screenshot.metadata.pageTitle || 'Untitled'}
               </Typography>
               <Box
                 sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}
@@ -157,7 +157,7 @@ export function ScreenshotCard({ screenshot }: ScreenshotCardProps) {
             <CardMedia
               component="img"
               image={screenshot.thumbnailUrl || screenshot.url}
-              alt={screenshot.pageTitle}
+              alt={screenshot.metadata.pageTitle}
               sx={{
                 width: '100%',
                 height: '100%',
@@ -183,23 +183,24 @@ export function ScreenshotCard({ screenshot }: ScreenshotCardProps) {
 
           {/* Metadata */}
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            {screenshot.editCount > 0 && (
+            {screenshot.metadata.editCount > 0 && (
               <Chip
                 icon={<Edit />}
-                label={`${screenshot.editCount} edits`}
+                label={`${screenshot.metadata.editCount} edits`}
                 size="small"
                 variant="outlined"
                 sx={{ fontSize: '0.75rem' }}
               />
             )}
-            {screenshot.width && screenshot.height && (
-              <Chip
-                label={`${screenshot.width}×${screenshot.height}`}
-                size="small"
-                variant="outlined"
-                sx={{ fontSize: '0.75rem' }}
-              />
-            )}
+            {screenshot.metadata.dimensions.width &&
+              screenshot.metadata.dimensions.height && (
+                <Chip
+                  label={`${screenshot.metadata.dimensions.width}×${screenshot.metadata.dimensions.height}`}
+                  size="small"
+                  variant="outlined"
+                  sx={{ fontSize: '0.75rem' }}
+                />
+              )}
           </Box>
         </CardContent>
       </Card>
@@ -232,16 +233,16 @@ export function ScreenshotCard({ screenshot }: ScreenshotCardProps) {
         fullWidth
       >
         <DialogTitle>
-          {screenshot.pageTitle}
+          {screenshot.metadata.pageTitle}
           <Typography variant="body2" color="text.secondary">
-            {screenshot.pageUrl}
+            {screenshot.metadata.pageUrl}
           </Typography>
         </DialogTitle>
         <DialogContent>
           <Box sx={{ textAlign: 'center' }}>
             <img
               src={screenshot.url}
-              alt={screenshot.pageTitle}
+              alt={screenshot.metadata.pageTitle}
               style={{
                 maxWidth: '100%',
                 maxHeight: '70vh',

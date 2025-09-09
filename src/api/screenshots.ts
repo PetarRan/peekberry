@@ -1,5 +1,8 @@
 // Client-side screenshots API
 import type { Screenshot, ScreenshotMetadata } from '@/schema';
+
+// Re-export types for components
+export type { Screenshot, ScreenshotMetadata };
 import { ImageUploadService } from '@/utils/supabase/imageUpload';
 import { ScreenshotService } from '@/utils/api/screenshots';
 import { UserStatsService } from '@/utils/api/userStats';
