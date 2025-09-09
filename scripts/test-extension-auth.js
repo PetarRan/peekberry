@@ -14,10 +14,12 @@ async function testAuthEndpoints() {
     const response = await fetch(`${API_BASE_URL}/api/extension/auth`);
     const result = await response.json();
 
-    if (response.status === 401) {
+    if (response.status === 401 && result.success === false) {
       console.log('✅ Correctly returned 401 Unauthorized');
+      console.log('   Response:', result);
     } else {
       console.log('❌ Expected 401 but got:', response.status);
+      console.log('   Response:', result);
     }
   } catch (error) {
     console.log('❌ Error:', error.message);
@@ -37,10 +39,12 @@ async function testAuthEndpoints() {
     });
     const result = await response.json();
 
-    if (response.status === 401) {
+    if (response.status === 401 && result.valid === false) {
       console.log('✅ Correctly returned 401 for invalid token');
+      console.log('   Response:', result);
     } else {
       console.log('❌ Expected 401 but got:', response.status);
+      console.log('   Response:', result);
     }
   } catch (error) {
     console.log('❌ Error:', error.message);
@@ -60,8 +64,10 @@ async function testAuthEndpoints() {
 
     if (response.status === 400) {
       console.log('✅ Correctly returned 400 for missing token');
+      console.log('   Response:', result);
     } else {
       console.log('❌ Expected 400 but got:', response.status);
+      console.log('   Response:', result);
     }
   } catch (error) {
     console.log('❌ Error:', error.message);
@@ -77,3 +83,27 @@ async function testAuthEndpoints() {
 
 // Run tests
 testAuthEndpoints().catch(console.error);
+
+// Additional test for valid token (requires manual setup)
+async function testValidToken() {
+  console.log('\n🔧 Manual Test Instructions:');
+  console.log('To test with a valid token:');
+  console.log('1. Start the dev server: npm run dev');
+  console.log('2. Sign in at http://localhost:3000');
+  console.log('3. Visit http://localhost:3000/extension-auth');
+  console.log('4. Check browser console for the generated token');
+  console.log('5. Use that token to test the verify endpoint manually');
+  console.log('\nExample test with valid token:');
+  console.log(`
+const validToken = 'your-token-here';
+const response = await fetch('${API_BASE_URL}/api/extension/auth/verify', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ token: validToken })
+});
+const result = await response.json();
+console.log('Valid token test:', result);
+  `);
+}
+
+testValidToken();
