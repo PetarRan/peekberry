@@ -77,6 +77,8 @@ class PeekberryContentScript {
   private elementInfoTooltip: HTMLElement | null = null;
   private repositionTimeout: ReturnType<typeof setTimeout> | null = null;
   private statusIndicator: any = null;
+  private tooltipThrottle: ReturnType<typeof setTimeout> | null = null;
+  private mouseOverThrottle: ReturnType<typeof setTimeout> | null = null;
 
   // CSS class names for Peekberry elements
   private readonly CSS_CLASSES = {
@@ -131,9 +133,11 @@ class PeekberryContentScript {
       if (!authStatus.isAuthenticated) {
         console.log('Peekberry: User not authenticated, showing auth bubble');
         this.createPeekberryBubble(false);
+        this.disableElementSelection();
       } else {
         console.log('Peekberry: User authenticated, showing active bubble');
         this.createPeekberryBubble(true);
+        this.enableElementSelection();
       }
     } catch (error) {
       console.error('Peekberry: Auth check failed:', error);
@@ -141,6 +145,7 @@ class PeekberryContentScript {
         'Peekberry: Showing bubble in unauthenticated state as fallback'
       );
       this.createPeekberryBubble(false);
+      this.disableElementSelection();
     }
 
     // Initialize status indicator in development mode
@@ -242,10 +247,12 @@ class PeekberryContentScript {
         this.peekberryBubble.classList.add('peekberry-bubble-authenticated');
         this.peekberryBubble.setAttribute('title', 'Open Peekberry AI Editor');
         console.log('Peekberry: Bubble updated to authenticated state');
+        this.enableElementSelection();
       } else {
         this.peekberryBubble.classList.add('peekberry-bubble-unauthenticated');
         this.peekberryBubble.setAttribute('title', 'Sign in to Peekberry');
         console.log('Peekberry: Bubble updated to unauthenticated state');
+        this.disableElementSelection();
       }
 
       // Ensure bubble is visible
@@ -664,6 +671,89 @@ class PeekberryContentScript {
   }
 
   /**
+   * Show element tooltip with information
+   */
+  private showElementTooltip(element: HTMLElement, event: MouseEvent): void {
+    // Throttle tooltip creation to prevent memory leaks
+    if (this.tooltipThrottle) {
+      clearTimeout(this.tooltipThrottle);
+    }
+
+    this.tooltipThrottle = setTimeout(() => {
+      // Remove existing tooltip
+      this.hideElementTooltip();
+
+      // Only create if still relevant
+      if (
+        !this.isElementSelectionActive ||
+        this.highlightedElement !== element
+      ) {
+        return;
+      }
+
+      this.elementInfoTooltip = document.createElement('div');
+      this.elementInfoTooltip.className = 'peekberry-element-info';
+      this.elementInfoTooltip.setAttribute('data-peekberry-element', 'true');
+
+      // Simplified content to reduce DOM complexity
+      const displayName = this.getElementDisplayName(element);
+      this.elementInfoTooltip.textContent = displayName;
+
+      // Position with bounds checking
+      const x = Math.min(event.clientX + 10, window.innerWidth - 200);
+      const y = Math.max(event.clientY - 40, 10);
+
+      this.elementInfoTooltip.style.left = `${x}px`;
+      this.elementInfoTooltip.style.top = `${y}px`;
+
+      document.body.appendChild(this.elementInfoTooltip);
+    }, 150); // Throttle to prevent excessive DOM manipulation
+  }
+
+  /**
+   * Hide element tooltip and clear throttle
+   */
+  private hideElementTooltip(): void {
+    if (this.elementInfoTooltip) {
+      this.elementInfoTooltip.remove();
+      this.elementInfoTooltip = null;
+    }
+    if (this.tooltipThrottle) {
+      clearTimeout(this.tooltipThrottle);
+      this.tooltipThrottle = null;
+    }
+  }
+
+  /**
+   * Get display name for element
+   */
+  private getElementDisplayName(element: HTMLElement): string {
+    const tagName = element.tagName.toLowerCase();
+
+    if (element.id) {
+      return `${tagName}#${element.id}`;
+    }
+
+    if (element.className && typeof element.className === 'string') {
+      const classes = element.className
+        .split(' ')
+        .filter((c) => c.trim())
+        .slice(0, 2);
+      if (classes.length > 0) {
+        return `${tagName}.${classes.join('.')}`;
+      }
+    }
+
+    // For text content
+    if (element.textContent && element.textContent.trim().length > 0) {
+      const text = element.textContent.trim().substring(0, 20);
+      return `${tagName} "${text}${text.length > 20 ? '...' : ''}"`;
+    }
+
+    return tagName;
+  }
+
+  /**
    * Toggle the chat panel visibility
    */
   private toggleChatPanel(): void {
@@ -776,6 +866,9 @@ class PeekberryContentScript {
 
     // Update undo/redo button states
     this.updateUndoRedoButtonStates();
+
+    // Update apply button state
+    this.updateApplyButtonState();
   }
 
   /**
@@ -827,8 +920,11 @@ class PeekberryContentScript {
       '.peekberry-chat-input'
     ) as HTMLTextAreaElement;
     if (input) {
-      // Auto-resize textarea
-      input.addEventListener('input', () => this.autoResizeTextarea(input));
+      // Auto-resize textarea and update apply button
+      input.addEventListener('input', () => {
+        this.autoResizeTextarea(input);
+        this.updateApplyButtonState();
+      });
 
       // Handle Enter key (Shift+Enter for new line, Enter to apply)
       input.addEventListener('keydown', (e) => {
@@ -876,15 +972,42 @@ class PeekberryContentScript {
   }
 
   /**
-   * Toggle element selection mode
+   * Enable element selection mode (always active when authenticated)
+   */
+  private enableElementSelection(): void {
+    if (this.isElementSelectionActive) return;
+
+    console.log('Peekberry: Enabling element selection for entire DOM');
+    this.isElementSelectionActive = true;
+    this.startElementSelection();
+
+    // Show a brief notification
+    showQuickStatus(
+      'DOM selection enabled - hover and click elements to select',
+      'success',
+      3000
+    );
+  }
+
+  /**
+   * Disable element selection mode
+   */
+  private disableElementSelection(): void {
+    if (!this.isElementSelectionActive) return;
+
+    console.log('Peekberry: Disabling element selection');
+    this.isElementSelectionActive = false;
+    this.stopElementSelection();
+  }
+
+  /**
+   * Toggle element selection mode (for manual control)
    */
   private toggleElementSelection(): void {
-    this.isElementSelectionActive = !this.isElementSelectionActive;
-
     if (this.isElementSelectionActive) {
-      this.startElementSelection();
+      this.disableElementSelection();
     } else {
-      this.stopElementSelection();
+      this.enableElementSelection();
     }
   }
 
@@ -892,25 +1015,65 @@ class PeekberryContentScript {
    * Start element selection mode
    */
   private startElementSelection(): void {
-    document.addEventListener('mouseover', this.handleMouseOver);
-    document.addEventListener('mouseout', this.handleMouseOut);
-    document.addEventListener('click', this.handleElementClick);
-    document.body.style.cursor = 'crosshair';
+    // Use capture phase to ensure we get events before other handlers
+    document.addEventListener('mouseover', this.handleMouseOver, {
+      capture: true,
+      passive: true,
+    });
+    document.addEventListener('mouseout', this.handleMouseOut, {
+      capture: true,
+      passive: true,
+    });
+    document.addEventListener('click', this.handleElementClick, {
+      capture: true,
+    });
+
+    // Add subtle visual indicator that selection is active (no cursor change for better UX)
+    document.documentElement.style.setProperty(
+      '--peekberry-selection-active',
+      '1'
+    );
+
+    console.log(
+      'Peekberry: Element selection listeners attached to entire document'
+    );
   }
 
   /**
    * Stop element selection mode
    */
   private stopElementSelection(): void {
-    document.removeEventListener('mouseover', this.handleMouseOver);
-    document.removeEventListener('mouseout', this.handleMouseOut);
-    document.removeEventListener('click', this.handleElementClick);
-    document.body.style.cursor = '';
+    document.removeEventListener('mouseover', this.handleMouseOver, {
+      capture: true,
+    });
+    document.removeEventListener('mouseout', this.handleMouseOut, {
+      capture: true,
+    });
+    document.removeEventListener('click', this.handleElementClick, {
+      capture: true,
+    });
+
+    // Remove visual indicator
+    document.documentElement.style.removeProperty(
+      '--peekberry-selection-active'
+    );
 
     if (this.highlightedElement) {
       this.removeHighlight(this.highlightedElement);
       this.highlightedElement = null;
     }
+
+    // Clean up tooltips and throttles to prevent memory leaks
+    this.hideElementTooltip();
+
+    if (this.mouseOverThrottle) {
+      clearTimeout(this.mouseOverThrottle);
+      this.mouseOverThrottle = null;
+    }
+
+    console.log(
+      'Peekberry: Element selection listeners removed and cleaned up'
+    );
   }
 
   /**
@@ -921,27 +1084,34 @@ class PeekberryContentScript {
 
     const target = e.target as HTMLElement;
 
-    // Skip Peekberry elements and non-interactive elements
-    if (
-      this.isPeekberryElement(target) ||
-      this.isNonSelectableElement(target)
-    ) {
+    // Skip Peekberry elements - this is crucial!
+    if (this.isPeekberryElement(target)) {
       return;
     }
 
-    // Find the most appropriate parent element for selection
+    // Skip non-visual elements but allow most DOM elements
+    if (this.isNonSelectableElement(target)) {
+      return;
+    }
+
+    // Find the most appropriate element for selection
     const selectableElement = this.findSelectableElement(target);
     if (!selectableElement) return;
 
-    if (
-      this.highlightedElement &&
-      this.highlightedElement !== selectableElement
-    ) {
+    // Don't re-highlight the same element
+    if (this.highlightedElement === selectableElement) return;
+
+    // Remove previous highlight
+    if (this.highlightedElement) {
       this.removeHighlight(this.highlightedElement);
     }
 
+    // Add new highlight with dev-tools style
     this.highlightElement(selectableElement);
     this.highlightedElement = selectableElement;
+
+    // Tooltip disabled temporarily to prevent memory leaks
+    // this.showElementTooltip(selectableElement, e);
   };
 
   /**
@@ -967,6 +1137,9 @@ class PeekberryContentScript {
         this.removeHighlight(this.highlightedElement);
         this.highlightedElement = null;
       }
+
+      // Hide tooltip
+      this.hideElementTooltip();
     }, 50);
   };
 
@@ -976,14 +1149,31 @@ class PeekberryContentScript {
   private handleElementClick = (e: MouseEvent): void => {
     if (!this.isElementSelectionActive) return;
 
+    const target = e.target as HTMLElement;
+
+    // IMPORTANT: Let Peekberry elements handle their own clicks!
+    if (this.isPeekberryElement(target)) {
+      console.log(
+        'Peekberry: Ignoring click on Peekberry element:',
+        target.className
+      );
+      return; // Don't prevent default, let the bubble/chat work normally
+    }
+
+    // Only prevent default for non-Peekberry elements
     e.preventDefault();
     e.stopPropagation();
 
-    const target = e.target as HTMLElement;
-    if (this.isPeekberryElement(target)) return;
-
     this.selectElement(target);
-    this.toggleElementSelection(); // Stop selection mode after selecting
+
+    // Show success feedback
+    showQuickStatus(
+      `Selected: ${this.getElementDisplayName(target)}`,
+      'success',
+      2000
+    );
+
+    // Keep selection mode active - don't toggle off!
   };
 
   /**
@@ -1246,33 +1436,37 @@ class PeekberryContentScript {
 
     elementsList.innerHTML = '';
 
-    this.selectedElements.forEach((element, index) => {
-      const tag = document.createElement('div');
-      tag.className = 'peekberry-element-tag';
-      tag.innerHTML = `
-        <span>${this.getElementDisplayName(element)}</span>
-        <button class="peekberry-remove-element" data-index="${index}">×</button>
+    if (this.selectedElements.length === 0) {
+      // Show helpful message when no elements are selected
+      const helpMessage = document.createElement('div');
+      helpMessage.className = 'peekberry-elements-help';
+      helpMessage.innerHTML = `
+        <div class="peekberry-help-text">
+          ${
+            this.isElementSelectionActive
+              ? '🎯 Hover and click any element on the page to select it'
+              : '⚠️ Element selection is disabled - please sign in'
+          }
+        </div>
       `;
+      elementsList.appendChild(helpMessage);
+    } else {
+      this.selectedElements.forEach((element, index) => {
+        const tag = document.createElement('div');
+        tag.className = 'peekberry-element-tag';
+        tag.innerHTML = `
+          <span>${this.getElementDisplayName(element)}</span>
+          <button class="peekberry-remove-element" data-index="${index}">×</button>
+        `;
 
-      const removeBtn = tag.querySelector('.peekberry-remove-element');
-      removeBtn?.addEventListener('click', () =>
-        this.removeSelectedElement(index)
-      );
+        const removeBtn = tag.querySelector('.peekberry-remove-element');
+        removeBtn?.addEventListener('click', () =>
+          this.removeSelectedElement(index)
+        );
 
-      elementsList.appendChild(tag);
-    });
-  }
-
-  /**
-   * Get display name for an element
-   */
-  private getElementDisplayName(element: HTMLElement): string {
-    const tagName = element.tagName.toLowerCase();
-    const id = element.id ? `#${element.id}` : '';
-    const className = element.className
-      ? `.${element.className.split(' ')[0]}`
-      : '';
-    return `${tagName}${id}${className}`;
+        elementsList.appendChild(tag);
+      });
+    }
   }
 
   /**
@@ -2768,6 +2962,39 @@ class PeekberryContentScript {
   }
 
   /**
+   * Update apply button state based on selected elements and input
+   */
+  private updateApplyButtonState(): void {
+    if (!this.chatPanel) return;
+
+    const applyBtn = this.chatPanel.querySelector(
+      '.peekberry-apply-btn'
+    ) as HTMLButtonElement;
+    const input = this.chatPanel.querySelector(
+      '.peekberry-chat-input'
+    ) as HTMLTextAreaElement;
+
+    if (applyBtn) {
+      const hasElements = this.selectedElements.length > 0;
+      const hasInput = input && input.value.trim().length > 0;
+      const isAuthenticated = this.isElementSelectionActive; // Selection is only active when authenticated
+
+      applyBtn.disabled = !hasElements || !hasInput || !isAuthenticated;
+
+      // Update button text based on state
+      if (!isAuthenticated) {
+        applyBtn.textContent = 'Sign In Required';
+      } else if (!hasElements) {
+        applyBtn.textContent = 'Select Element';
+      } else if (!hasInput) {
+        applyBtn.textContent = 'Enter Command';
+      } else {
+        applyBtn.textContent = 'Apply';
+      }
+    }
+  }
+
+  /**
    * Get edit history summary for debugging
    */
   private getEditHistorySummary(): {
@@ -2965,10 +3192,25 @@ class PeekberryContentScript {
     this.removeAllHighlights();
     this.hideElementInfoTooltip();
 
-    // Clear any pending timeouts
+    // Clear ALL pending timeouts to prevent memory leaks
     if (this.repositionTimeout) {
       clearTimeout(this.repositionTimeout);
       this.repositionTimeout = null;
+    }
+
+    if (this.tooltipThrottle) {
+      clearTimeout(this.tooltipThrottle);
+      this.tooltipThrottle = null;
+    }
+
+    if (this.mouseOverThrottle) {
+      clearTimeout(this.mouseOverThrottle);
+      this.mouseOverThrottle = null;
+    }
+
+    // Clean up performance manager
+    if (typeof performanceManager !== 'undefined') {
+      performanceManager.cleanup();
     }
 
     if (this.peekberryBubble) {

@@ -235,6 +235,21 @@
   display: flex !important;
   flex-wrap: wrap !important;
   gap: 6px !important;
+  min-height: 32px !important;
+  align-items: center !important;
+}
+
+.peekberry-elements-help {
+  width: 100% !important;
+  text-align: center !important;
+  padding: 8px !important;
+}
+
+.peekberry-help-text {
+  color: #AAAAAA !important;
+  font-size: 12px !important;
+  font-style: italic !important;
+  line-height: 1.4 !important;
 }
 
 .peekberry-element-tag {
@@ -409,27 +424,27 @@
   cursor: not-allowed !important;
 }
 
-/* Element highlighting with enhanced visual feedback */
+/* Element highlighting with dev-tools style */
 .peekberry-highlight {
-  outline: 2px solid #3B82F6 !important;
-  outline-offset: 2px !important;
-  background-color: rgba(59, 130, 246, 0.08) !important;
+  outline: 2px solid #1976d2 !important;
+  outline-offset: -2px !important;
+  background-color: rgba(25, 118, 210, 0.1) !important;
   position: relative !important;
   z-index: 2147483640 !important;
-  transition: all 0.15s ease !important;
+  transition: all 0.1s ease !important;
+  cursor: pointer !important;
 }
 
-.peekberry-highlight::before {
+.peekberry-highlight::after {
   content: '' !important;
   position: absolute !important;
-  top: -4px !important;
-  left: -4px !important;
-  right: -4px !important;
-  bottom: -4px !important;
-  border: 1px dashed #3B82F6 !important;
-  border-radius: 4px !important;
+  top: -2px !important;
+  left: -2px !important;
+  right: -2px !important;
+  bottom: -2px !important;
+  border: 1px solid rgba(25, 118, 210, 0.3) !important;
   pointer-events: none !important;
-  z-index: -1 !important;
+  z-index: 1 !important;
 }
 
 .peekberry-selected {
@@ -455,18 +470,48 @@
 
 /* Element info tooltip (appears on hover) */
 .peekberry-element-info {
-  position: absolute !important;
-  background: #0D0D0D !important;
-  color: #F0F0F0 !important;
-  padding: 4px 8px !important;
+  position: fixed !important;
+  background: #1976d2 !important;
+  color: #ffffff !important;
+  padding: 6px 10px !important;
   border-radius: 4px !important;
-  font-size: 11px !important;
-  font-family: monospace !important;
-  border: 1px solid #333333 !important;
+  font-size: 12px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 500 !important;
   z-index: 2147483645 !important;
   pointer-events: none !important;
   white-space: nowrap !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  max-width: 300px !important;
+  animation: peekberryTooltipFadeIn 0.2s ease-out !important;
+}
+
+@keyframes peekberryTooltipFadeIn {
+  from {
+    opacity: 0 !important;
+    transform: translateY(5px) !important;
+  }
+  to {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+}
+
+.peekberry-tooltip-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+.peekberry-tooltip-tag {
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+
+.peekberry-tooltip-selector {
+  font-size: 11px !important;
+  opacity: 0.9 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
 }
 
 /* Responsive adjustments */
