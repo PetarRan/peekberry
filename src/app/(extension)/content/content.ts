@@ -79,6 +79,8 @@ class PeekberryContentScript {
   private statusIndicator: any = null;
   private tooltipThrottle: ReturnType<typeof setTimeout> | null = null;
   private mouseOverThrottle: ReturnType<typeof setTimeout> | null = null;
+  private lastMouseOverTime = 0;
+  private lastHighlightedElement: HTMLElement | null = null;
 
   // CSS class names for Peekberry elements
   private readonly CSS_CLASSES = {
@@ -148,15 +150,15 @@ class PeekberryContentScript {
       this.disableElementSelection();
     }
 
-    // Initialize status indicator in development mode
-    if (process.env.NODE_ENV === 'development') {
-      this.statusIndicator = createStatusIndicator({
-        position: 'top-left',
-        showPerformance: true,
-        autoHide: true,
-        hideDelay: 10000,
-      });
-    }
+    // Status indicator disabled for performance
+    // if (process.env.NODE_ENV === 'development') {
+    //   this.statusIndicator = createStatusIndicator({
+    //     position: 'top-left',
+    //     showPerformance: true,
+    //     autoHide: true,
+    //     hideDelay: 10000,
+    //   });
+    // }
 
     this.isInitialized = true;
     console.log('Peekberry content script initialized successfully');
@@ -977,7 +979,7 @@ class PeekberryContentScript {
   private enableElementSelection(): void {
     if (this.isElementSelectionActive) return;
 
-    console.log('Peekberry: Enabling element selection for entire DOM');
+    console.log('Peekberry: Enabling PERFORMANT element selection');
     this.isElementSelectionActive = true;
     this.startElementSelection();
 
@@ -1012,15 +1014,17 @@ class PeekberryContentScript {
   }
 
   /**
-   * Start element selection mode
+   * Start element selection mode (DISABLED for performance)
    */
   private startElementSelection(): void {
-    // Use capture phase to ensure we get events before other handlers
-    document.addEventListener('mouseover', this.handleMouseOver, {
+    console.log('Peekberry: Starting PERFORMANT element selection');
+
+    // Use HEAVILY THROTTLED event listeners to prevent performance issues
+    document.addEventListener('mouseover', this.handleMouseOverThrottled, {
       capture: true,
       passive: true,
     });
-    document.addEventListener('mouseout', this.handleMouseOut, {
+    document.addEventListener('mouseout', this.handleMouseOutThrottled, {
       capture: true,
       passive: true,
     });
@@ -1028,52 +1032,41 @@ class PeekberryContentScript {
       capture: true,
     });
 
-    // Add subtle visual indicator that selection is active (no cursor change for better UX)
-    document.documentElement.style.setProperty(
-      '--peekberry-selection-active',
-      '1'
-    );
-
-    console.log(
-      'Peekberry: Element selection listeners attached to entire document'
-    );
+    console.log('Peekberry: PERFORMANT element selection listeners attached');
   }
 
   /**
    * Stop element selection mode
    */
   private stopElementSelection(): void {
-    document.removeEventListener('mouseover', this.handleMouseOver, {
+    // Remove the PERFORMANT throttled handlers
+    document.removeEventListener('mouseover', this.handleMouseOverThrottled, {
       capture: true,
     });
-    document.removeEventListener('mouseout', this.handleMouseOut, {
+    document.removeEventListener('mouseout', this.handleMouseOutThrottled, {
       capture: true,
     });
     document.removeEventListener('click', this.handleElementClick, {
       capture: true,
     });
 
-    // Remove visual indicator
-    document.documentElement.style.removeProperty(
-      '--peekberry-selection-active'
-    );
-
     if (this.highlightedElement) {
       this.removeHighlight(this.highlightedElement);
       this.highlightedElement = null;
+      this.lastHighlightedElement = null;
     }
 
-    // Clean up tooltips and throttles to prevent memory leaks
+    // Clean up throttles
     this.hideElementTooltip();
-
     if (this.mouseOverThrottle) {
       clearTimeout(this.mouseOverThrottle);
       this.mouseOverThrottle = null;
     }
 
-    console.log(
-      'Peekberry: Element selection listeners removed and cleaned up'
-    );
+    // Reset throttling variables
+    this.lastMouseOverTime = 0;
+
+    console.log('Peekberry: PERFORMANT element selection listeners removed');
   }
 
   /**
@@ -1141,6 +1134,80 @@ class PeekberryContentScript {
       // Hide tooltip
       this.hideElementTooltip();
     }, 50);
+  };
+
+  /**
+   * PERFORMANT throttled mouse over handler (prevents performance issues)
+   */
+  private handleMouseOverThrottled = (e: MouseEvent): void => {
+    if (!this.isElementSelectionActive) return;
+
+    // AGGRESSIVE throttling - only process every 200ms
+    const now = Date.now();
+    if (now - this.lastMouseOverTime < 200) {
+      return;
+    }
+    this.lastMouseOverTime = now;
+
+    const target = e.target as HTMLElement;
+
+    // Skip Peekberry elements
+    if (this.isPeekberryElement(target)) {
+      return;
+    }
+
+    // Skip non-selectable elements
+    if (this.isNonSelectableElement(target)) {
+      return;
+    }
+
+    // Find selectable element (cached to avoid repeated queries)
+    const selectableElement = this.findSelectableElement(target);
+    if (
+      !selectableElement ||
+      selectableElement === this.lastHighlightedElement
+    ) {
+      return;
+    }
+
+    // Remove previous highlight
+    if (this.highlightedElement) {
+      this.removeHighlight(this.highlightedElement);
+    }
+
+    // Add new highlight
+    this.highlightElement(selectableElement);
+    this.highlightedElement = selectableElement;
+    this.lastHighlightedElement = selectableElement;
+
+    // NO TOOLTIPS - they cause performance issues
+  };
+
+  /**
+   * PERFORMANT throttled mouse out handler
+   */
+  private handleMouseOutThrottled = (e: MouseEvent): void => {
+    if (!this.isElementSelectionActive) return;
+
+    const target = e.target as HTMLElement;
+    if (
+      this.isPeekberryElement(target) ||
+      this.isNonSelectableElement(target)
+    ) {
+      return;
+    }
+
+    // Simple delayed cleanup
+    setTimeout(() => {
+      if (
+        this.highlightedElement &&
+        !this.highlightedElement.matches(':hover')
+      ) {
+        this.removeHighlight(this.highlightedElement);
+        this.highlightedElement = null;
+        this.lastHighlightedElement = null;
+      }
+    }, 100);
   };
 
   /**
@@ -1442,11 +1509,8 @@ class PeekberryContentScript {
       helpMessage.className = 'peekberry-elements-help';
       helpMessage.innerHTML = `
         <div class="peekberry-help-text">
-          ${
-            this.isElementSelectionActive
-              ? '🎯 Hover and click any element on the page to select it'
-              : '⚠️ Element selection is disabled - please sign in'
-          }
+          🎯 Hover and click any element on the page to select it.<br>
+          Element selection is now optimized for performance!
         </div>
       `;
       elementsList.appendChild(helpMessage);
