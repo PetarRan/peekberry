@@ -62,23 +62,80 @@ class PeekberryContentScript {
   private async initializeContentScript(): Promise<void> {
     if (this.isInitialized) return;
 
+    console.log(
+      'Peekberry: Starting content script initialization on:',
+      window.location.href
+    );
+
     // Check if we're on a valid page (not chrome:// or extension pages)
     if (this.isInvalidPage()) {
+      console.log('Peekberry: Invalid page, skipping initialization');
       return;
     }
 
-    // Check authentication status
-    const authStatus = await this.checkAuthStatus();
-    if (!authStatus.isAuthenticated) {
-      console.log('Peekberry: User not authenticated, skipping initialization');
-      return;
-    }
+    console.log('Peekberry: Valid page, proceeding with initialization');
 
+    // Always set up event listeners
     this.setupEventListeners();
-    this.createPeekberryBubble();
-    this.isInitialized = true;
 
-    console.log('Peekberry content script initialized');
+    // TEMPORARY: Force show bubble immediately for debugging
+    console.log('Peekberry: Force creating bubble for debugging');
+    this.createPeekberryBubble(false);
+
+    // Check authentication status with timeout
+    try {
+      const authStatus = await Promise.race([
+        this.checkAuthStatus(),
+        new Promise<{ isAuthenticated: boolean }>((_, reject) =>
+          setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+        ),
+      ]);
+
+      console.log('Peekberry: Auth status:', authStatus);
+
+      if (!authStatus.isAuthenticated) {
+        console.log('Peekberry: User not authenticated, showing auth bubble');
+        this.createPeekberryBubble(false);
+      } else {
+        console.log('Peekberry: User authenticated, showing active bubble');
+        this.createPeekberryBubble(true);
+      }
+    } catch (error) {
+      console.error('Peekberry: Auth check failed:', error);
+      console.log(
+        'Peekberry: Showing bubble in unauthenticated state as fallback'
+      );
+      this.createPeekberryBubble(false);
+    }
+
+    this.isInitialized = true;
+    console.log('Peekberry content script initialized successfully');
+
+    // Set up periodic check to ensure bubble stays visible
+    setInterval(() => {
+      if (
+        !this.peekberryBubble ||
+        !document.body.contains(this.peekberryBubble)
+      ) {
+        console.log('Peekberry: Bubble missing, recreating...');
+        this.checkAuthStatus()
+          .then((authStatus) => {
+            this.createPeekberryBubble(authStatus.isAuthenticated);
+          })
+          .catch(() => {
+            // If auth check fails, show unauthenticated bubble
+            this.createPeekberryBubble(false);
+          });
+      }
+    }, 3000); // Check every 3 seconds
+
+    // Also add a delayed initialization as backup
+    setTimeout(() => {
+      if (!this.peekberryBubble) {
+        console.log('Peekberry: Delayed initialization - creating bubble');
+        this.createPeekberryBubble(false); // Default to unauthenticated
+      }
+    }, 2000);
   }
 
   /**
@@ -97,7 +154,7 @@ class PeekberryContentScript {
   /**
    * Check authentication status with background script
    */
-  private async checkAuthStatus(): Promise<{
+  public async checkAuthStatus(): Promise<{
     isAuthenticated: boolean;
     userId?: string;
   }> {
@@ -114,6 +171,60 @@ class PeekberryContentScript {
         }
       });
     });
+  }
+
+  /**
+   * Refresh authentication status and update bubble
+   */
+  private async refreshAuthStatus(): Promise<void> {
+    const authStatus = await this.checkAuthStatus();
+    console.log('Peekberry: Refreshed auth status:', authStatus);
+
+    if (this.peekberryBubble) {
+      // Remove old auth classes
+      this.peekberryBubble.classList.remove(
+        'peekberry-bubble-authenticated',
+        'peekberry-bubble-unauthenticated'
+      );
+
+      // Add appropriate class and update title
+      if (authStatus.isAuthenticated) {
+        this.peekberryBubble.classList.add('peekberry-bubble-authenticated');
+        this.peekberryBubble.setAttribute('title', 'Open Peekberry AI Editor');
+        console.log('Peekberry: Bubble updated to authenticated state');
+      } else {
+        this.peekberryBubble.classList.add('peekberry-bubble-unauthenticated');
+        this.peekberryBubble.setAttribute('title', 'Sign in to Peekberry');
+        console.log('Peekberry: Bubble updated to unauthenticated state');
+      }
+
+      // Ensure bubble is visible
+      this.ensureBubbleVisible();
+    } else {
+      console.log('Peekberry: No bubble found, creating new one');
+      this.createPeekberryBubble(authStatus.isAuthenticated);
+    }
+  }
+
+  /**
+   * Ensure bubble remains visible and properly positioned
+   */
+  private ensureBubbleVisible(): void {
+    if (!this.peekberryBubble) return;
+
+    // Make sure bubble is attached to DOM
+    if (!document.body.contains(this.peekberryBubble)) {
+      console.log('Peekberry: Re-attaching bubble to DOM');
+      document.body.appendChild(this.peekberryBubble);
+    }
+
+    // Ensure proper styling
+    this.peekberryBubble.style.display = 'flex';
+    this.peekberryBubble.style.position = 'fixed';
+    this.peekberryBubble.style.zIndex = '2147483647';
+
+    // Reposition safely
+    this.positionBubbleSafely();
   }
 
   /**
@@ -188,6 +299,12 @@ class PeekberryContentScript {
         });
         break;
 
+      case 'REFRESH_AUTH_STATUS':
+        this.refreshAuthStatus().then(() => {
+          sendResponse({ success: true });
+        });
+        break;
+
       default:
         sendResponse({ success: false, error: 'Unknown message type' });
     }
@@ -199,7 +316,11 @@ class PeekberryContentScript {
   private handleDOMChanges(mutations: MutationRecord[]): void {
     // Check if our bubble was removed and re-add it
     if (this.peekberryBubble && !document.body.contains(this.peekberryBubble)) {
-      this.createPeekberryBubble();
+      console.log('Peekberry: Bubble was removed, re-creating...');
+      // Re-check auth status and recreate bubble
+      this.checkAuthStatus().then((authStatus) => {
+        this.createPeekberryBubble(authStatus.isAuthenticated);
+      });
     }
 
     // Check for layout changes that might affect bubble positioning
@@ -227,7 +348,7 @@ class PeekberryContentScript {
   /**
    * Create the persistent Peekberry bubble following extension-ui.md guidelines
    */
-  private createPeekberryBubble(): void {
+  public createPeekberryBubble(isAuthenticated: boolean = true): void {
     if (this.peekberryBubble) {
       this.peekberryBubble.remove();
     }
@@ -235,7 +356,14 @@ class PeekberryContentScript {
     this.peekberryBubble = document.createElement('div');
     this.peekberryBubble.className = this.CSS_CLASSES.BUBBLE;
     this.peekberryBubble.setAttribute('data-peekberry-element', 'true');
-    this.peekberryBubble.setAttribute('title', 'Open Peekberry AI Editor');
+
+    if (isAuthenticated) {
+      this.peekberryBubble.setAttribute('title', 'Open Peekberry AI Editor');
+      this.peekberryBubble.classList.add('peekberry-bubble-authenticated');
+    } else {
+      this.peekberryBubble.setAttribute('title', 'Sign in to Peekberry');
+      this.peekberryBubble.classList.add('peekberry-bubble-unauthenticated');
+    }
 
     // Use a more recognizable AI/edit icon
     this.peekberryBubble.innerHTML = `
@@ -251,7 +379,12 @@ class PeekberryContentScript {
     this.peekberryBubble.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.toggleChatPanel();
+
+      if (isAuthenticated) {
+        this.toggleChatPanel();
+      } else {
+        this.handleUnauthenticatedClick();
+      }
     });
 
     // Add keyboard accessibility
@@ -263,7 +396,12 @@ class PeekberryContentScript {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         e.stopPropagation();
-        this.toggleChatPanel();
+
+        if (isAuthenticated) {
+          this.toggleChatPanel();
+        } else {
+          this.handleUnauthenticatedClick();
+        }
       }
     });
 
@@ -271,6 +409,9 @@ class PeekberryContentScript {
     this.positionBubbleSafely();
 
     document.body.appendChild(this.peekberryBubble);
+    console.log('Peekberry: Bubble created and added to page', {
+      isAuthenticated,
+    });
   }
 
   /**
@@ -378,9 +519,27 @@ class PeekberryContentScript {
   }
 
   /**
+   * Handle click when user is not authenticated
+   */
+  private handleUnauthenticatedClick(): void {
+    this.showNotification('Please sign in to Peekberry first', 'warning');
+
+    // Open the extension popup for authentication
+    chrome.runtime.sendMessage({ type: 'OPEN_POPUP' }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('Error opening popup:', chrome.runtime.lastError);
+      }
+    });
+  }
+
+  /**
    * Toggle the chat panel visibility
    */
   private toggleChatPanel(): void {
+    console.log(
+      'Peekberry: Toggling chat panel, current state:',
+      this.chatPanel ? 'open' : 'closed'
+    );
     if (this.chatPanel) {
       this.hideChatPanel();
     } else {
@@ -389,54 +548,162 @@ class PeekberryContentScript {
   }
 
   /**
-   * Show the chat panel
+   * Show the chat panel with enhanced UI following extension-ui.md guidelines
    */
   private showChatPanel(): void {
     if (this.chatPanel) return;
 
+    console.log('Peekberry: Creating and showing chat panel');
+
     this.chatPanel = document.createElement('div');
     this.chatPanel.className = this.CSS_CLASSES.CHAT_PANEL;
+    this.chatPanel.setAttribute('data-peekberry-element', 'true');
     this.chatPanel.innerHTML = `
       <div class="peekberry-chat-header">
         <div class="peekberry-chat-title">Peekberry AI</div>
-        <button class="peekberry-close-btn" type="button">×</button>
+        <div class="peekberry-header-actions">
+          <button class="peekberry-history-btn" type="button" title="View History">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="peekberry-close-btn" type="button" title="Close">×</button>
+        </div>
       </div>
       <div class="peekberry-chat-content">
         <div class="peekberry-selected-elements">
-          <div class="peekberry-elements-label">Selected Elements:</div>
+          <div class="peekberry-elements-label">Selected Elements</div>
           <div class="peekberry-elements-list"></div>
         </div>
         <div class="peekberry-chat-input-container">
-          <textarea 
-            class="peekberry-chat-input" 
-            placeholder="Describe the changes you want to make..."
-            rows="3"
-          ></textarea>
-          <div class="peekberry-chat-actions">
-            <button class="peekberry-select-btn" type="button">Select Element</button>
-            <button class="peekberry-screenshot-btn" type="button">📷</button>
-            <button class="peekberry-apply-btn" type="button">Apply</button>
+          <div class="peekberry-input-wrapper">
+            <div class="peekberry-input-icons">
+              <button class="peekberry-settings-btn" type="button" title="Settings">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+              <button class="peekberry-upload-btn" type="button" title="Upload">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <textarea 
+              class="peekberry-chat-input" 
+              placeholder="e.g., 'Make the signup button more prominent'"
+              rows="2"
+            ></textarea>
+            <div class="peekberry-input-controls">
+              <div class="peekberry-model-selector">
+                <select class="peekberry-model-dropdown">
+                  <option value="claude-4">Claude-4</option>
+                  <option value="gpt-4">GPT-4</option>
+                </select>
+              </div>
+              <button class="peekberry-voice-btn" type="button" title="Voice Input">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <button class="peekberry-screenshot-btn" type="button" title="Screenshot">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+              <button class="peekberry-apply-btn" type="button">Apply</button>
+            </div>
           </div>
         </div>
       </div>
     `;
 
     // Add event listeners
+    this.setupChatPanelEventListeners();
+
+    // Position and show panel
+    this.positionChatPanel();
+    document.body.appendChild(this.chatPanel);
+
+    // Update selected elements display
+    this.updateSelectedElementsDisplay();
+  }
+
+  /**
+   * Setup event listeners for chat panel
+   */
+  private setupChatPanelEventListeners(): void {
+    if (!this.chatPanel) return;
+
+    // Close button
     const closeBtn = this.chatPanel.querySelector('.peekberry-close-btn');
     closeBtn?.addEventListener('click', () => this.hideChatPanel());
 
-    const selectBtn = this.chatPanel.querySelector('.peekberry-select-btn');
-    selectBtn?.addEventListener('click', () => this.toggleElementSelection());
+    // History button
+    const historyBtn = this.chatPanel.querySelector('.peekberry-history-btn');
+    historyBtn?.addEventListener('click', () => this.showHistoryPanel());
 
+    // Settings button
+    const settingsBtn = this.chatPanel.querySelector('.peekberry-settings-btn');
+    settingsBtn?.addEventListener('click', () => this.showSettingsMenu());
+
+    // Upload button
+    const uploadBtn = this.chatPanel.querySelector('.peekberry-upload-btn');
+    uploadBtn?.addEventListener('click', () => this.handleFileUpload());
+
+    // Voice button
+    const voiceBtn = this.chatPanel.querySelector('.peekberry-voice-btn');
+    voiceBtn?.addEventListener('click', () => this.toggleVoiceInput());
+
+    // Screenshot button
     const screenshotBtn = this.chatPanel.querySelector(
       '.peekberry-screenshot-btn'
     );
     screenshotBtn?.addEventListener('click', () => this.captureScreenshot());
 
+    // Apply button
     const applyBtn = this.chatPanel.querySelector('.peekberry-apply-btn');
     applyBtn?.addEventListener('click', () => this.processEditCommand());
 
-    document.body.appendChild(this.chatPanel);
+    // Input handling
+    const input = this.chatPanel.querySelector(
+      '.peekberry-chat-input'
+    ) as HTMLTextAreaElement;
+    if (input) {
+      // Auto-resize textarea
+      input.addEventListener('input', () => this.autoResizeTextarea(input));
+
+      // Handle Enter key (Shift+Enter for new line, Enter to apply)
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          this.processEditCommand();
+        }
+      });
+    }
+  }
+
+  /**
+   * Position chat panel appropriately
+   */
+  private positionChatPanel(): void {
+    if (!this.chatPanel) return;
+
+    // Default position from right side
+    this.chatPanel.style.position = 'fixed';
+    this.chatPanel.style.top = '20px';
+    this.chatPanel.style.right = '20px';
+    this.chatPanel.style.zIndex = '2147483646';
+
+    // Adjust for mobile
+    if (window.innerWidth <= 480) {
+      this.chatPanel.style.right = '10px';
+      this.chatPanel.style.left = '10px';
+      this.chatPanel.style.width = 'auto';
+    }
   }
 
   /**
@@ -1001,7 +1268,169 @@ class PeekberryContentScript {
   }
 
   /**
-   * Process edit command (placeholder for now)
+   * Auto-resize textarea based on content
+   */
+  private autoResizeTextarea(textarea: HTMLTextAreaElement): void {
+    textarea.style.height = 'auto';
+    const newHeight = Math.min(textarea.scrollHeight, 120); // Max height of 120px
+    textarea.style.height = `${newHeight}px`;
+  }
+
+  /**
+   * Show history panel with slide-in animation
+   */
+  private showHistoryPanel(): void {
+    // Remove existing history panel if any
+    const existingHistory = document.querySelector('.peekberry-history-panel');
+    if (existingHistory) {
+      existingHistory.remove();
+    }
+
+    const historyPanel = document.createElement('div');
+    historyPanel.className = 'peekberry-history-panel';
+    historyPanel.setAttribute('data-peekberry-element', 'true');
+    historyPanel.innerHTML = `
+      <div class="peekberry-history-header">
+        <button class="peekberry-history-back" type="button" title="Back">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="peekberry-history-title">History</div>
+      </div>
+      <div class="peekberry-history-content">
+        ${this.renderHistoryEntries()}
+      </div>
+    `;
+
+    // Position history panel
+    if (this.chatPanel) {
+      const chatRect = this.chatPanel.getBoundingClientRect();
+      historyPanel.style.position = 'fixed';
+      historyPanel.style.top = `${chatRect.top}px`;
+      historyPanel.style.right = `${window.innerWidth - chatRect.left}px`;
+      historyPanel.style.width = `${chatRect.width}px`;
+      historyPanel.style.height = `${chatRect.height}px`;
+    }
+
+    // Add event listeners
+    const backBtn = historyPanel.querySelector('.peekberry-history-back');
+    backBtn?.addEventListener('click', () => {
+      historyPanel.remove();
+    });
+
+    // Add revert button listeners
+    historyPanel
+      .querySelectorAll('.peekberry-revert-btn')
+      .forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+          this.revertToHistoryEntry(index);
+          historyPanel.remove();
+        });
+      });
+
+    document.body.appendChild(historyPanel);
+  }
+
+  /**
+   * Render history entries HTML
+   */
+  private renderHistoryEntries(): string {
+    if (this.editHistory.length === 0) {
+      return `
+        <div class="peekberry-history-empty">
+          <div class="peekberry-history-empty-title">No history yet</div>
+          <div class="peekberry-history-empty-text">Your edit history will appear here</div>
+        </div>
+      `;
+    }
+
+    return this.editHistory
+      .slice()
+      .reverse()
+      .map((entry, index) => {
+        const timeAgo = this.getTimeAgo(entry.timestamp);
+        const description = this.getEditDescription(entry);
+
+        return `
+          <div class="peekberry-history-entry">
+            <div class="peekberry-history-entry-content">
+              <div class="peekberry-history-entry-text">${description}</div>
+              <div class="peekberry-history-entry-time">${timeAgo}</div>
+            </div>
+            <button class="peekberry-revert-btn" type="button">Revert</button>
+          </div>
+        `;
+      })
+      .join('');
+  }
+
+  /**
+   * Get human-readable edit description
+   */
+  private getEditDescription(entry: EditAction): string {
+    const elementName = this.getElementDisplayName(entry.element as any);
+    const action =
+      entry.type === 'style'
+        ? 'styled'
+        : entry.type === 'content'
+          ? 'changed text of'
+          : 'modified';
+    return `${action} ${elementName}`;
+  }
+
+  /**
+   * Get time ago string
+   */
+  private getTimeAgo(timestamp: Date): string {
+    const now = new Date();
+    const diffMs = now.getTime() - timestamp.getTime();
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+
+    if (diffSeconds < 60) {
+      return 'now';
+    } else if (diffMinutes < 60) {
+      return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+    } else if (diffHours < 24) {
+      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    } else {
+      return timestamp.toLocaleDateString();
+    }
+  }
+
+  /**
+   * Revert to a specific history entry
+   */
+  private revertToHistoryEntry(index: number): void {
+    // This will be implemented in the undo/redo task
+    console.log('Reverting to history entry:', index);
+  }
+
+  /**
+   * Show settings menu (placeholder)
+   */
+  private showSettingsMenu(): void {
+    console.log('Settings menu - to be implemented');
+  }
+
+  /**
+   * Handle file upload (placeholder)
+   */
+  private handleFileUpload(): void {
+    console.log('File upload - to be implemented');
+  }
+
+  /**
+   * Toggle voice input (placeholder)
+   */
+  private toggleVoiceInput(): void {
+    console.log('Voice input - to be implemented');
+  }
+
+  /**
+   * Process edit command with enhanced functionality
    */
   private async processEditCommand(): Promise<void> {
     if (!this.chatPanel) return;
@@ -1011,52 +1440,191 @@ class PeekberryContentScript {
     ) as HTMLTextAreaElement;
     const command = input?.value.trim();
 
-    if (!command || this.selectedElements.length === 0) {
-      alert('Please select elements and enter a command');
+    if (!command) {
+      this.showNotification('Please enter a command', 'warning');
       return;
     }
 
-    console.log('Processing command:', command);
-    console.log('Selected elements:', this.selectedElements.length);
-
-    // This will be implemented in later tasks
-    // For now, just clear the input
-    if (input) {
-      input.value = '';
+    if (this.selectedElements.length === 0) {
+      this.showNotification('Please select at least one element', 'warning');
+      return;
     }
+
+    // Show loading state
+    const applyBtn = this.chatPanel.querySelector(
+      '.peekberry-apply-btn'
+    ) as HTMLButtonElement;
+    const originalText = applyBtn.textContent;
+    applyBtn.textContent = 'Processing...';
+    applyBtn.disabled = true;
+
+    try {
+      // Send command to background script for AI processing
+      const response = await this.sendMessageToBackground({
+        type: 'PROCESS_EDIT_COMMAND',
+        payload: {
+          command,
+          elements: this.selectedElements.map((el) =>
+            this.getElementContext(el)
+          ),
+        },
+      });
+
+      if (response.success && response.data) {
+        // Apply mutations will be implemented in task 11
+        console.log('Edit command processed:', response.data);
+
+        // Add to history
+        const editAction: EditAction = {
+          id: Date.now().toString(),
+          type: 'style', // This will be determined by the AI response
+          element: this.getElementContext(this.selectedElements[0]),
+          mutation: response.data,
+          timestamp: new Date(),
+          undoable: true,
+        };
+
+        this.editHistory.push(editAction);
+
+        // Clear input and show success
+        input.value = '';
+        this.autoResizeTextarea(input);
+        this.showNotification('Changes applied successfully', 'success');
+      } else {
+        throw new Error(response.error || 'Failed to process command');
+      }
+    } catch (error) {
+      console.error('Error processing edit command:', error);
+      this.showNotification(
+        'Failed to process command. Please try again.',
+        'error'
+      );
+    } finally {
+      // Restore button state
+      applyBtn.textContent = originalText;
+      applyBtn.disabled = false;
+    }
+  }
+
+  /**
+   * Send message to background script
+   */
+  private async sendMessageToBackground(message: any): Promise<any> {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(message, (response) => {
+        if (chrome.runtime.lastError) {
+          resolve({ success: false, error: chrome.runtime.lastError.message });
+        } else {
+          resolve(response || { success: false, error: 'No response' });
+        }
+      });
+    });
+  }
+
+  /**
+   * Show notification to user
+   */
+  private showNotification(
+    message: string,
+    type: 'success' | 'warning' | 'error' = 'success'
+  ): void {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll(
+      '.peekberry-notification'
+    );
+    existingNotifications.forEach((n) => n.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `peekberry-notification peekberry-notification-${type}`;
+    notification.setAttribute('data-peekberry-element', 'true');
+    notification.textContent = message;
+
+    // Position notification
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.zIndex = '2147483647';
+
+    document.body.appendChild(notification);
+
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 3000);
   }
 
   /**
    * Apply DOM mutation (placeholder for now)
    */
-  private applyMutation(mutation: DOMMutation): void {
-    console.log('Applying mutation:', mutation);
-    // This will be implemented in later tasks
-  }
-
   /**
-   * Undo last edit (placeholder for now)
-   */
-  private undoLastEdit(): void {
-    console.log('Undo last edit');
-    // This will be implemented in later tasks
-  }
-
-  /**
-   * Redo edit (placeholder for now)
-   */
-  private redoEdit(): void {
-    console.log('Redo edit');
-    // This will be implemented in later tasks
-  }
-
-  /**
-   * Capture screenshot (placeholder for now)
+   * Capture screenshot with metadata and upload
    */
   private async captureScreenshot(): Promise<Blob | null> {
-    console.log('Capturing screenshot');
-    // This will be implemented in later tasks
-    return null;
+    try {
+      // Show loading notification
+      this.showNotification('Capturing screenshot...', 'success');
+
+      // Send message to background script to capture screenshot
+      const response = await this.sendMessageToBackground({
+        type: 'CAPTURE_SCREENSHOT',
+        payload: {
+          pageUrl: window.location.href,
+          pageTitle: document.title,
+          editCount: this.editHistory.length,
+          dimensions: {
+            width: window.innerWidth,
+            height: window.innerHeight,
+          },
+        },
+      });
+
+      if (response.success && response.data) {
+        this.showNotification('Screenshot captured and saved!', 'success');
+        return response.data;
+      } else {
+        throw new Error(response.error || 'Failed to capture screenshot');
+      }
+    } catch (error) {
+      console.error('Error capturing screenshot:', error);
+      this.showNotification('Failed to capture screenshot', 'error');
+      return null;
+    }
+  }
+
+  /**
+   * Apply DOM mutation (placeholder - will be implemented in task 11)
+   */
+  private applyMutation(mutation: DOMMutation): void {
+    console.log('Applying mutation:', mutation);
+    // This will be implemented in task 11
+  }
+
+  /**
+   * Undo last edit (placeholder - will be implemented in task 12)
+   */
+  private undoLastEdit(): void {
+    if (this.editHistory.length === 0) {
+      this.showNotification('No edits to undo', 'warning');
+      return;
+    }
+
+    console.log('Undo last edit');
+    // This will be implemented in task 12
+  }
+
+  /**
+   * Redo edit (placeholder - will be implemented in task 12)
+   */
+  private redoEdit(): void {
+    if (this.redoStack.length === 0) {
+      this.showNotification('No edits to redo', 'warning');
+      return;
+    }
+
+    console.log('Redo edit');
+    // This will be implemented in task 12
   }
 
   /**
@@ -1083,10 +1651,33 @@ class PeekberryContentScript {
 }
 
 // Initialize content script when DOM is ready
+let peekberryInstance: PeekberryContentScript;
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    new PeekberryContentScript();
+    peekberryInstance = new PeekberryContentScript();
   });
 } else {
-  new PeekberryContentScript();
+  peekberryInstance = new PeekberryContentScript();
 }
+
+// Add global debug method
+(window as any).peekberryDebug = {
+  forceShowBubble: () => {
+    console.log('Peekberry: Force showing bubble');
+    if (peekberryInstance) {
+      peekberryInstance.createPeekberryBubble(false);
+    }
+  },
+  checkAuth: async () => {
+    if (peekberryInstance) {
+      const status = await peekberryInstance.checkAuthStatus();
+      console.log('Peekberry: Auth status:', status);
+      return status;
+    }
+  },
+  reinitialize: () => {
+    console.log('Peekberry: Reinitializing...');
+    peekberryInstance = new PeekberryContentScript();
+  },
+};

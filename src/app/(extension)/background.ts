@@ -89,6 +89,8 @@ class PeekberryBackground {
         case 'SYNC_AUTH_FROM_WEBAPP':
           await this.syncAuthFromWebapp();
           const newAuthStatus = await this.getAuthStatus();
+          // Notify all content scripts about auth status change
+          await this.notifyContentScriptsAuthChange();
           sendResponse({ success: true, data: newAuthStatus });
           break;
 
@@ -308,6 +310,32 @@ class PeekberryBackground {
     } catch (error) {
       console.error('Error verifying token with server:', error);
       return { valid: false };
+    }
+  }
+
+  /**
+   * Notify all content scripts about authentication status change
+   */
+  private async notifyContentScriptsAuthChange(): Promise<void> {
+    try {
+      const tabs = await chrome.tabs.query({});
+
+      for (const tab of tabs) {
+        if (
+          tab.id &&
+          tab.url &&
+          !tab.url.startsWith('chrome://') &&
+          !tab.url.startsWith('chrome-extension://')
+        ) {
+          try {
+            chrome.tabs.sendMessage(tab.id, { type: 'REFRESH_AUTH_STATUS' });
+          } catch (error) {
+            // Ignore errors for tabs without content script
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error notifying content scripts:', error);
     }
   }
 

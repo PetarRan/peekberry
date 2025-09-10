@@ -65,6 +65,31 @@
   left: 20px !important;
 }
 
+/* Bubble authentication states */
+.peekberry-bubble.peekberry-bubble-authenticated {
+  border-color: #22C55E !important;
+}
+
+.peekberry-bubble.peekberry-bubble-authenticated:hover {
+  border-color: #16A34A !important;
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3) !important;
+}
+
+.peekberry-bubble.peekberry-bubble-unauthenticated {
+  border-color: #F59E0B !important;
+  background: #1A1A0A !important;
+}
+
+.peekberry-bubble.peekberry-bubble-unauthenticated:hover {
+  border-color: #D97706 !important;
+  background: #2A2A0A !important;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3) !important;
+}
+
+.peekberry-bubble.peekberry-bubble-unauthenticated .peekberry-bubble-icon {
+  color: #F59E0B !important;
+}
+
 /* Ensure bubble doesn't interfere with page scrollbars */
 @media (max-width: 768px) {
   .peekberry-bubble {
@@ -131,13 +156,19 @@
   margin: 0 !important;
 }
 
+.peekberry-header-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.peekberry-history-btn,
 .peekberry-close-btn {
   background: none !important;
   border: none !important;
   color: #AAAAAA !important;
-  font-size: 24px !important;
   cursor: pointer !important;
-  padding: 0 !important;
+  padding: 4px !important;
   width: 24px !important;
   height: 24px !important;
   display: flex !important;
@@ -147,6 +178,11 @@
   transition: all 0.2s ease !important;
 }
 
+.peekberry-close-btn {
+  font-size: 18px !important;
+}
+
+.peekberry-history-btn:hover,
 .peekberry-close-btn:hover {
   background: #333333 !important;
   color: #F0F0F0 !important;
@@ -216,48 +252,128 @@
   color: #F0F0F0 !important;
 }
 
-/* Chat input container */
+/* Chat input container with enhanced layout */
 .peekberry-chat-input-container {
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
 }
 
-.peekberry-chat-input {
+.peekberry-input-wrapper {
   background: #0D0D0D !important;
   border: 1px solid #333333 !important;
   border-radius: 8px !important;
-  color: #F0F0F0 !important;
   padding: 12px !important;
-  font-size: 14px !important;
-  font-family: inherit !important;
-  resize: vertical !important;
-  min-height: 80px !important;
-  outline: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
   transition: border-color 0.2s ease !important;
 }
 
-.peekberry-chat-input:focus {
+.peekberry-input-wrapper:focus-within {
   border-color: #555555 !important;
+}
+
+.peekberry-input-icons {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.peekberry-settings-btn,
+.peekberry-upload-btn {
+  background: none !important;
+  border: none !important;
+  color: #AAAAAA !important;
+  cursor: pointer !important;
+  padding: 2px !important;
+  width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 2px !important;
+  transition: all 0.2s ease !important;
+}
+
+.peekberry-settings-btn:hover,
+.peekberry-upload-btn:hover {
+  background: #333333 !important;
+  color: #F0F0F0 !important;
+}
+
+.peekberry-chat-input {
+  background: transparent !important;
+  border: none !important;
+  color: #F0F0F0 !important;
+  font-size: 14px !important;
+  font-family: inherit !important;
+  resize: none !important;
+  min-height: 40px !important;
+  max-height: 120px !important;
+  outline: none !important;
+  width: 100% !important;
+  overflow-y: auto !important;
 }
 
 .peekberry-chat-input::placeholder {
   color: #666666 !important;
 }
 
-/* Chat actions */
-.peekberry-chat-actions {
+.peekberry-input-controls {
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
-  flex-wrap: wrap !important;
+  justify-content: space-between !important;
 }
 
-.peekberry-select-btn,
-.peekberry-screenshot-btn,
+.peekberry-model-selector {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.peekberry-model-dropdown {
+  background: #2C2C2C !important;
+  border: 1px solid #404040 !important;
+  border-radius: 4px !important;
+  color: #F0F0F0 !important;
+  font-size: 11px !important;
+  padding: 4px 8px !important;
+  outline: none !important;
+  cursor: pointer !important;
+}
+
+.peekberry-model-dropdown:hover {
+  border-color: #555555 !important;
+}
+
+.peekberry-voice-btn,
+.peekberry-screenshot-btn {
+  background: #2C2C2C !important;
+  border: none !important;
+  color: #F0F0F0 !important;
+  cursor: pointer !important;
+  padding: 6px !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+}
+
+.peekberry-voice-btn:hover,
+.peekberry-screenshot-btn:hover {
+  background: #404040 !important;
+}
+
 .peekberry-apply-btn {
+  background: #000000 !important;
+  color: #FFFFFF !important;
   border: none !important;
   border-radius: 20px !important;
+  padding: 6px 16px !important;
   font-size: 12px !important;
   font-weight: 500 !important;
   cursor: pointer !important;
@@ -266,40 +382,13 @@
   font-family: inherit !important;
 }
 
-.peekberry-select-btn {
-  background: #2C2C2C !important;
-  color: #F0F0F0 !important;
-  padding: 8px 16px !important;
-}
-
-.peekberry-select-btn:hover {
-  background: #404040 !important;
-}
-
-.peekberry-screenshot-btn {
-  background: #2C2C2C !important;
-  color: #F0F0F0 !important;
-  padding: 8px 12px !important;
-  width: 36px !important;
-  height: 36px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.peekberry-screenshot-btn:hover {
-  background: #404040 !important;
-}
-
-.peekberry-apply-btn {
-  background: #000000 !important;
-  color: #FFFFFF !important;
-  padding: 8px 20px !important;
-  margin-left: auto !important;
-}
-
-.peekberry-apply-btn:hover {
+.peekberry-apply-btn:hover:not(:disabled) {
   background: #333333 !important;
+}
+
+.peekberry-apply-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
 }
 
 /* Element highlighting with enhanced visual feedback */
@@ -412,5 +501,261 @@
   
   .peekberry-bubble:hover {
     transform: none !important;
+  }
+}/* 
+History panel - slide-in from right */
+.peekberry-history-panel {
+  position: fixed !important;
+  background: #1E1E1E !important;
+  border: 1px solid #333333 !important;
+  border-radius: 12px !important;
+  z-index: 2147483647 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  animation: peekberrySlideInFromRight 0.3s ease-out !important;
+}
+
+@keyframes peekberrySlideInFromRight {
+  from {
+    transform: translateX(100%) !important;
+    opacity: 0 !important;
+  }
+  to {
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+  }
+}
+
+.peekberry-history-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 16px 20px !important;
+  background: #0D0D0D !important;
+  border-bottom: 1px solid #333333 !important;
+}
+
+.peekberry-history-back {
+  background: none !important;
+  border: none !important;
+  color: #AAAAAA !important;
+  cursor: pointer !important;
+  padding: 4px !important;
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+}
+
+.peekberry-history-back:hover {
+  background: #333333 !important;
+  color: #F0F0F0 !important;
+}
+
+.peekberry-history-title {
+  color: #F0F0F0 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+}
+
+.peekberry-history-content {
+  padding: 16px !important;
+  flex: 1 !important;
+  overflow-y: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.peekberry-history-empty {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 40px 20px !important;
+  text-align: center !important;
+}
+
+.peekberry-history-empty-title {
+  color: #F0F0F0 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  margin-bottom: 8px !important;
+}
+
+.peekberry-history-empty-text {
+  color: #AAAAAA !important;
+  font-size: 12px !important;
+}
+
+.peekberry-history-entry {
+  background: #2C2C2C !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.peekberry-history-entry:hover {
+  background: #333333 !important;
+}
+
+.peekberry-history-entry-content {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.peekberry-history-entry-text {
+  color: #F0F0F0 !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+}
+
+.peekberry-history-entry-time {
+  color: #AAAAAA !important;
+  font-size: 11px !important;
+}
+
+.peekberry-revert-btn {
+  background: #2C2C2C !important;
+  border: 1px solid #404040 !important;
+  color: #F0F0F0 !important;
+  border-radius: 16px !important;
+  padding: 4px 12px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  outline: none !important;
+  font-family: inherit !important;
+  white-space: nowrap !important;
+}
+
+.peekberry-revert-btn:hover {
+  background: #404040 !important;
+  border-color: #555555 !important;
+}
+
+/* Notifications */
+.peekberry-notification {
+  background: #1E1E1E !important;
+  border: 1px solid #333333 !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+  color: #F0F0F0 !important;
+  font-size: 13px !important;
+  font-family: inherit !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+  animation: peekberryNotificationSlideIn 0.3s ease-out !important;
+  max-width: 300px !important;
+  word-wrap: break-word !important;
+}
+
+@keyframes peekberryNotificationSlideIn {
+  from {
+    transform: translateX(100%) !important;
+    opacity: 0 !important;
+  }
+  to {
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+  }
+}
+
+.peekberry-notification-success {
+  border-color: #22C55E !important;
+  background: #0F2A1A !important;
+}
+
+.peekberry-notification-warning {
+  border-color: #F59E0B !important;
+  background: #2A1F0A !important;
+}
+
+.peekberry-notification-error {
+  border-color: #EF4444 !important;
+  background: #2A0F0F !important;
+}
+
+/* Enhanced element tags/chips */
+.peekberry-element-tag {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: #333333 !important;
+  color: #F0F0F0 !important;
+  padding: 6px 10px !important;
+  border-radius: 16px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border: 1px solid #404040 !important;
+  transition: all 0.2s ease !important;
+}
+
+.peekberry-element-tag:hover {
+  background: #404040 !important;
+  border-color: #555555 !important;
+}
+
+.peekberry-element-tag span {
+  font-family: monospace !important;
+  font-size: 11px !important;
+}
+
+.peekberry-remove-element {
+  background: none !important;
+  border: none !important;
+  color: #AAAAAA !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  width: 16px !important;
+  height: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  font-size: 12px !important;
+  transition: all 0.2s ease !important;
+  line-height: 1 !important;
+}
+
+.peekberry-remove-element:hover {
+  background: #555555 !important;
+  color: #F0F0F0 !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 480px) {
+  .peekberry-chat-panel,
+  .peekberry-history-panel {
+    width: calc(100vw - 20px) !important;
+    max-width: none !important;
+    left: 10px !important;
+    right: 10px !important;
+  }
+  
+  .peekberry-input-controls {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  
+  .peekberry-model-dropdown {
+    font-size: 10px !important;
+  }
+  
+  .peekberry-notification {
+    max-width: calc(100vw - 40px) !important;
+    right: 10px !important;
   }
 }
