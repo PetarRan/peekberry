@@ -4,16 +4,13 @@ import { Grid, Box, Typography, CircularProgress, Alert } from '@mui/material';
 import { Edit, CameraAlt, TrendingUp, PhotoLibrary } from '@mui/icons-material';
 import { StatsCard } from './StatsCard';
 import { useStats } from '@/hooks/useStats';
+import { StatsLoading } from './LoadingState';
 
 export function StatsDashboard() {
   const { data: stats, isLoading, error } = useStats();
 
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <StatsLoading />;
   }
 
   if (error) {

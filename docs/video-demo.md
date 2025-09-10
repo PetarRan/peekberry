@@ -34,17 +34,17 @@ _3-minute presentation showcasing product and Kiro development workflow_
 
 **[Screen: Show hooks configuration and execution]**
 
-"But the real game-changer was Kiro hooks. Watch this - every time we save a file, this hook automatically regenerates our database types from Supabase, rebuilds our Chrome extension, and runs our test suite. The hook that just triggered when we updated package.json? That's our entire CI/CD pipeline running locally, instantly."
+"But the real game-changer was Kiro hooks. Watch this - I just updated our package.json with new deployment scripts, and instantly Kiro triggered our development workflow. It regenerated our database types from Supabase, rebuilt our Chrome extension for production, ran our test suite, and even prepared our deployment package. The hook that just executed? That's our entire CI/CD pipeline running locally, automatically. What you're seeing is the future of development - where your AI partner doesn't just write code, it manages your entire development lifecycle."
 
 **[Screen: Show conversation history with code generation]**
 
-"Kiro generated our entire Chrome extension manifest, content scripts, background workers, and React components. Complex TypeScript interfaces, Zod validation schemas, API routes - all created through natural conversation. What traditionally takes weeks of research and debugging happened in hours."
+"Kiro generated our entire Chrome extension manifest, content scripts, background workers, and React components. Complex TypeScript interfaces, Zod validation schemas, API routes - all created through natural conversation. Look at this tasks.md file - 15 completed implementation tasks, each one tackled collaboratively with Kiro. From Chrome Extension Manifest V3 architecture to Supabase RLS policies, from Material UI theming to TanStack Query integration. What traditionally takes weeks of research and debugging happened in hours of intelligent collaboration."
 
 ## Technical Architecture (1:45 - 2:15)
 
 **[Screen: Show project structure and database schema]**
 
-"The technical architecture demonstrates production-ready development: Next.js 15 with App Router, Chrome Extension Manifest V3, Supabase PostgreSQL with Row Level Security, Clerk authentication, and TanStack Query for state management. This isn't prototype code - it's deployment-ready."
+"The technical architecture demonstrates production-ready development: Next.js 15 with App Router, Chrome Extension Manifest V3, Supabase PostgreSQL with Row Level Security, Clerk authentication, and TanStack Query for state management. Notice our build just completed - we now have deployment scripts for Vercel and Netlify, production environment setup, and automated extension packaging. This isn't prototype code - it's deployment-ready infrastructure that Kiro helped us architect and implement."
 
 **[Screen: Show supabase/migrations/001_initial_schema.sql]**
 
@@ -72,11 +72,11 @@ _3-minute presentation showcasing product and Kiro development workflow_
 
 **[Screen: Split view of Kiro IDE and Peekberry running]**
 
-"Peekberry proves that AI-assisted development isn't just about faster coding - it's about building better software. In 40 hours, we created a full-stack application with Chrome extension, authentication, database, and AI integration that would traditionally take a team weeks to build."
+"Peekberry proves that AI-assisted development isn't just about faster coding - it's about building better software. In 40 hours, we created a production-ready full-stack application with Chrome extension, authentication, database, AI integration, and complete deployment infrastructure that would traditionally take a team weeks to build."
 
 **[Screen: Final product demonstration]**
 
-"But the real innovation isn't just Peekberry - it's demonstrating how developers and AI can collaborate to turn ambitious ideas into reality. Kiro didn't replace our creativity; it amplified it. The future of development is here, and it's collaborative, intelligent, and incredibly powerful."
+"But the real innovation isn't just Peekberry - it's demonstrating how developers and AI can collaborate to turn ambitious ideas into reality. From automated hooks managing our development workflow to intelligent code generation following our architectural patterns, Kiro didn't replace our creativity; it amplified it exponentially. The future of development is here, and it's collaborative, intelligent, and incredibly powerful. This is what's possible when human creativity meets AI capability."
 
 ---
 
@@ -129,7 +129,8 @@ _3-minute presentation showcasing product and Kiro development workflow_
 ### Key Messages
 
 1. **Product Innovation**: Peekberry solves real user problems with natural language website editing
-2. **Development Revolution**: Kiro enabled 40-hour full-stack development that traditionally takes weeks
-3. **Technical Excellence**: Production-ready code with proper architecture, security, and performance
-4. **AI Collaboration**: Demonstrates the future of human-AI development partnerships
-5. **Hackathon Impact**: Shows both innovative product and revolutionary development process
+2. **Development Revolution**: Kiro enabled 40-hour full-stack development with automated workflows that traditionally takes weeks
+3. **Technical Excellence**: Production-ready code with proper architecture, security, performance, and deployment infrastructure
+4. **AI Collaboration**: Demonstrates the future of human-AI development partnerships through hooks, steering, and intelligent code generation
+5. **Hackathon Impact**: Shows both innovative product and revolutionary development process that redefines what's possible in rapid prototyping
+6. **Workflow Automation**: Live demonstration of Kiro hooks managing CI/CD, testing, and deployment automatically

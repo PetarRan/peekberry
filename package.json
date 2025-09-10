@@ -13,7 +13,11 @@
     "build:extension:prod": "webpack --mode production --config src/app/\\(extension\\)/webpack.config.js",
     "watch:extension": "webpack --mode development --config src/app/\\(extension\\)/webpack.config.js --watch",
     "db:test": "node scripts/test-db.js",
-    "db:types": "supabase gen types typescript --local > src/types/database.ts"
+    "db:types": "supabase gen types typescript --local > src/types/database.ts",
+    "setup:prod": "./scripts/setup-production.sh",
+    "build:all": "npm run build && npm run build:extension:prod",
+    "deploy:vercel": "vercel --prod",
+    "deploy:netlify": "netlify deploy --prod"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.31.10",

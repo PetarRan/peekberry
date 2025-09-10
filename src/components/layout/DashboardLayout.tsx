@@ -1,7 +1,8 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { Box, Container, Grid } from '@mui/material';
+import { Box, Container, Grid, Typography } from '@mui/material';
+import { ConnectionStatus } from '@/components/shared/ConnectionStatus';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -11,6 +12,21 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children, sidebar }: DashboardLayoutProps) {
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
+      {/* Extension Status Header */}
+      <Box
+        sx={{
+          mb: 3,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          Extension Status
+        </Typography>
+        <ConnectionStatus showDetails />
+      </Box>
+
       <Grid container spacing={4}>
         {/* Main Content Area */}
         <Grid item xs={12} lg={sidebar ? 8 : 12}>

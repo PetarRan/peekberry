@@ -3,6 +3,16 @@
  * Handles API communication, authentication, and cross-tab messaging
  */
 
+import {
+  PeekberryError,
+  ERROR_CODES,
+  logError,
+  retryWithBackoff,
+  safeAsyncOperation,
+  getUserFriendlyMessage,
+  createPeekberryError,
+} from './utils/errorHandling';
+
 // Types for background script functionality
 interface AuthToken {
   token: string;
@@ -62,40 +72,57 @@ class PeekberryBackground {
   }
 
   /**
-   * Handle messages from content scripts and popup
+   * Handle messages from content scripts and popup with comprehensive error handling
    */
   private async handleMessage(
     message: ExtensionMessage,
     sender: chrome.runtime.MessageSender,
     sendResponse: (response?: any) => void
   ): Promise<void> {
+    const context = {
+      component: 'BackgroundScript',
+      operation: message.type,
+      url: sender.tab?.url || 'unknown',
+      timestamp: new Date(),
+    };
+
     try {
       switch (message.type) {
         case 'GET_AUTH_STATUS':
-          const authStatus = await this.getAuthStatus();
+          const authStatus = await safeAsyncOperation(
+            () => this.getAuthStatus(),
+            context,
+            { isAuthenticated: false }
+          );
           sendResponse({ success: true, data: authStatus });
           break;
 
         case 'STORE_AUTH_TOKEN':
-          await this.storeAuthToken(message.payload);
+          await safeAsyncOperation(
+            () => this.storeAuthToken(message.payload),
+            context
+          );
           sendResponse({ success: true });
           break;
 
         case 'CLEAR_AUTH_TOKEN':
-          await this.clearAuthToken();
+          await safeAsyncOperation(() => this.clearAuthToken(), context);
           sendResponse({ success: true });
           break;
 
         case 'SYNC_AUTH_FROM_WEBAPP':
-          await this.syncAuthFromWebapp();
+          await safeAsyncOperation(() => this.syncAuthFromWebapp(), context);
           const newAuthStatus = await this.getAuthStatus();
-          // Notify all content scripts about auth status change
           await this.notifyContentScriptsAuthChange();
           sendResponse({ success: true, data: newAuthStatus });
           break;
 
         case 'VERIFY_TOKEN':
-          const verificationResult = await this.verifyTokenWithServer();
+          const verificationResult = await safeAsyncOperation(
+            () => this.verifyTokenWithServer(),
+            context,
+            { valid: false }
+          );
           sendResponse({ success: true, data: verificationResult });
           break;
 
@@ -104,14 +131,42 @@ class PeekberryBackground {
           sendResponse(apiResponse);
           break;
 
+        case 'PROCESS_EDIT_COMMAND':
+          const commandResult = await this.processEditCommand(message.payload);
+          sendResponse(commandResult);
+          break;
+
+        case 'CAPTURE_SCREENSHOT':
+          const screenshotResult = await this.captureScreenshot(
+            message.payload,
+            sender.tab?.id
+          );
+          sendResponse(screenshotResult);
+          break;
+
         default:
+          const error = new PeekberryError(
+            `Unknown message type: ${message.type}`,
+            ERROR_CODES.UNKNOWN_ERROR,
+            context
+          );
+          logError(error);
           sendResponse({ success: false, error: 'Unknown message type' });
       }
     } catch (error) {
-      console.error('Error handling message:', error);
+      const peekberryError =
+        error instanceof PeekberryError
+          ? error
+          : createPeekberryError(
+              error as Error,
+              ERROR_CODES.BACKGROUND_SCRIPT_ERROR,
+              context
+            );
+
+      logError(peekberryError);
       sendResponse({
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: getUserFriendlyMessage(peekberryError),
       });
     }
   }
@@ -337,6 +392,342 @@ class PeekberryBackground {
     } catch (error) {
       console.error('Error notifying content scripts:', error);
     }
+  }
+
+  /**
+   * Process edit command with AI service
+   */
+  private async processEditCommand(requestData: {
+    command: string;
+    context: any;
+  }): Promise<{ success: boolean; data?: any; error?: string }> {
+    const context = {
+      component: 'BackgroundScript',
+      operation: 'processEditCommand',
+      url: 'background',
+      timestamp: new Date(),
+    };
+
+    try {
+      const authData = await this.getStoredAuthToken();
+
+      if (!authData || this.isTokenExpired(authData)) {
+        const error = new PeekberryError(
+          'Authentication required',
+          ERROR_CODES.AUTH_REQUIRED,
+          context
+        );
+        logError(error);
+        return { success: false, error: 'Please sign in to continue' };
+      }
+
+      // Validate input
+      if (!requestData.command?.trim()) {
+        const error = new PeekberryError(
+          'Empty command provided',
+          ERROR_CODES.AI_COMMAND_INVALID,
+          context
+        );
+        logError(error);
+        return { success: false, error: 'Please provide a valid command' };
+      }
+
+      if (!requestData.context?.selector) {
+        const error = new PeekberryError(
+          'Missing element context',
+          ERROR_CODES.AI_CONTEXT_MISSING,
+          context
+        );
+        logError(error);
+        return { success: false, error: 'Element context is required' };
+      }
+
+      // Process with retry logic
+      const response = await retryWithBackoff(
+        async () => {
+          const res = await fetch(
+            `${this.API_BASE_URL}/api/ai/process-command`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${authData.token}`,
+              },
+              body: JSON.stringify({
+                command: requestData.command,
+                context: requestData.context,
+              }),
+            }
+          );
+
+          if (!res.ok) {
+            if (res.status === 401) {
+              // Token expired or invalid
+              await this.clearAuthToken();
+              throw new PeekberryError(
+                'Authentication expired',
+                ERROR_CODES.AUTH_TOKEN_EXPIRED,
+                context
+              );
+            }
+
+            if (res.status === 429) {
+              throw new PeekberryError(
+                'Rate limit exceeded',
+                ERROR_CODES.API_RATE_LIMIT,
+                context,
+                true // retryable
+              );
+            }
+
+            if (res.status >= 500) {
+              throw new PeekberryError(
+                'Server error',
+                ERROR_CODES.API_SERVER_ERROR,
+                context,
+                true // retryable
+              );
+            }
+
+            const errorData = await res.json().catch(() => ({}));
+            throw new PeekberryError(
+              errorData.error || `API request failed: ${res.statusText}`,
+              ERROR_CODES.AI_PROCESSING_FAILED,
+              context
+            );
+          }
+
+          return res;
+        },
+        {
+          maxAttempts: 3,
+          baseDelay: 1000,
+          maxDelay: 5000,
+          backoffMultiplier: 2,
+        },
+        context
+      );
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new PeekberryError(
+          data.error || 'Command processing failed',
+          ERROR_CODES.AI_PROCESSING_FAILED,
+          context
+        );
+      }
+
+      return { success: true, data: data.data };
+    } catch (error) {
+      const peekberryError =
+        error instanceof PeekberryError
+          ? error
+          : createPeekberryError(
+              error as Error,
+              ERROR_CODES.AI_PROCESSING_FAILED,
+              context
+            );
+
+      logError(peekberryError);
+      return {
+        success: false,
+        error: getUserFriendlyMessage(peekberryError),
+      };
+    }
+  }
+
+  /**
+   * Capture screenshot and upload to webapp
+   */
+  private async captureScreenshot(
+    metadata: {
+      pageUrl: string;
+      pageTitle: string;
+      editCount: number;
+      dimensions: { width: number; height: number };
+    },
+    tabId?: number
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    const context = {
+      component: 'BackgroundScript',
+      operation: 'captureScreenshot',
+      url: metadata.pageUrl,
+      timestamp: new Date(),
+    };
+
+    try {
+      if (!tabId) {
+        const error = new PeekberryError(
+          'No active tab found',
+          ERROR_CODES.SCREENSHOT_CAPTURE_FAILED,
+          context
+        );
+        logError(error);
+        return {
+          success: false,
+          error: 'No active tab available for screenshot',
+        };
+      }
+
+      const authData = await this.getStoredAuthToken();
+      if (!authData || this.isTokenExpired(authData)) {
+        const error = new PeekberryError(
+          'Authentication required for screenshot',
+          ERROR_CODES.AUTH_REQUIRED,
+          context
+        );
+        logError(error);
+        return {
+          success: false,
+          error: 'Please sign in to capture screenshots',
+        };
+      }
+
+      // Capture screenshot using Chrome API with error handling
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        chrome.tabs.captureVisibleTab(
+          {
+            format: 'png',
+            quality: 90,
+          },
+          (dataUrl) => {
+            if (chrome.runtime.lastError) {
+              const errorMessage =
+                chrome.runtime.lastError.message || 'Screenshot capture failed';
+              if (errorMessage.includes('permission')) {
+                reject(
+                  new PeekberryError(
+                    'Screenshot permission denied',
+                    ERROR_CODES.SCREENSHOT_PERMISSION_DENIED,
+                    context
+                  )
+                );
+              } else {
+                reject(
+                  new PeekberryError(
+                    errorMessage,
+                    ERROR_CODES.SCREENSHOT_CAPTURE_FAILED,
+                    context,
+                    true // retryable
+                  )
+                );
+              }
+            } else {
+              resolve(dataUrl);
+            }
+          }
+        );
+      });
+
+      // Convert data URL to blob
+      const blob = await this.dataUrlToBlob(dataUrl);
+
+      // Create form data for upload
+      const formData = new FormData();
+      const filename = `screenshot_${Date.now()}.png`;
+      formData.append('file', blob, filename);
+      formData.append(
+        'metadata',
+        JSON.stringify({
+          pageUrl: metadata.pageUrl,
+          pageTitle: metadata.pageTitle,
+          editCount: metadata.editCount,
+          dimensions: metadata.dimensions,
+        })
+      );
+
+      // Upload to webapp with retry logic
+      const response = await retryWithBackoff(
+        async () => {
+          const res = await fetch(`${this.API_BASE_URL}/api/screenshots`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${authData.token}`,
+            },
+            body: formData,
+          });
+
+          if (!res.ok) {
+            if (res.status === 401) {
+              await this.clearAuthToken();
+              throw new PeekberryError(
+                'Authentication expired',
+                ERROR_CODES.AUTH_TOKEN_EXPIRED,
+                context
+              );
+            }
+
+            if (res.status === 413) {
+              throw new PeekberryError(
+                'Screenshot file too large',
+                ERROR_CODES.SCREENSHOT_UPLOAD_FAILED,
+                context
+              );
+            }
+
+            if (res.status >= 500) {
+              throw new PeekberryError(
+                'Server error during upload',
+                ERROR_CODES.API_SERVER_ERROR,
+                context,
+                true // retryable
+              );
+            }
+
+            throw new PeekberryError(
+              `Upload failed: ${res.statusText}`,
+              ERROR_CODES.SCREENSHOT_UPLOAD_FAILED,
+              context
+            );
+          }
+
+          return res;
+        },
+        {
+          maxAttempts: 2, // Only retry once for uploads
+          baseDelay: 2000,
+          maxDelay: 5000,
+          backoffMultiplier: 2,
+        },
+        context
+      );
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new PeekberryError(
+          result.error || 'Screenshot upload failed',
+          ERROR_CODES.SCREENSHOT_UPLOAD_FAILED,
+          context
+        );
+      }
+
+      return { success: true, data: result.data };
+    } catch (error) {
+      const peekberryError =
+        error instanceof PeekberryError
+          ? error
+          : createPeekberryError(
+              error as Error,
+              ERROR_CODES.SCREENSHOT_CAPTURE_FAILED,
+              context
+            );
+
+      logError(peekberryError);
+      return {
+        success: false,
+        error: getUserFriendlyMessage(peekberryError),
+      };
+    }
+  }
+
+  /**
+   * Convert data URL to Blob
+   */
+  private async dataUrlToBlob(dataUrl: string): Promise<Blob> {
+    const response = await fetch(dataUrl);
+    return response.blob();
   }
 
   /**

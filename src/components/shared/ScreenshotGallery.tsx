@@ -15,6 +15,7 @@ import {
 import { Search, Add } from '@mui/icons-material';
 import { ScreenshotCard } from './ScreenshotCard';
 import { useScreenshots } from '@/hooks/useScreenshots';
+import { ScreenshotGalleryLoading } from './LoadingState';
 
 interface ScreenshotGalleryProps {
   onCreateScreenshot?: () => void;
@@ -48,11 +49,7 @@ export function ScreenshotGallery({
     ) || [];
 
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <ScreenshotGalleryLoading />;
   }
 
   if (error) {

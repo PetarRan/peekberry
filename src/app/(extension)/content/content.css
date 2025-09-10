@@ -162,6 +162,8 @@
   gap: 8px !important;
 }
 
+.peekberry-undo-btn,
+.peekberry-redo-btn,
 .peekberry-history-btn,
 .peekberry-close-btn {
   background: none !important;
@@ -182,10 +184,26 @@
   font-size: 18px !important;
 }
 
+.peekberry-undo-btn:hover:not(:disabled),
+.peekberry-redo-btn:hover:not(:disabled),
 .peekberry-history-btn:hover,
 .peekberry-close-btn:hover {
   background: #333333 !important;
   color: #F0F0F0 !important;
+}
+
+/* Disabled state for undo/redo buttons */
+.peekberry-undo-btn:disabled,
+.peekberry-redo-btn:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  color: #666666 !important;
+}
+
+.peekberry-undo-btn:disabled:hover,
+.peekberry-redo-btn:disabled:hover {
+  background: none !important;
+  color: #666666 !important;
 }
 
 /* Chat panel content */

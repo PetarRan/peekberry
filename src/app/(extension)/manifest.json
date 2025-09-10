@@ -3,7 +3,13 @@
   "name": "Peekberry",
   "version": "1.0.0",
   "description": "AI-powered DOM editor for making ephemeral UI changes on any website",
-  "permissions": ["activeTab", "storage", "scripting", "tabs"],
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "tabs",
+    "desktopCapture"
+  ],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"

@@ -60,19 +60,58 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // TODO: Implement screenshot upload logic
-    const body = await request.json();
-    console.log('Screenshot upload request received:', {
-      userId,
-      bodyKeys: Object.keys(body),
-    });
+    // Parse form data
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+    const metadataStr = formData.get('metadata') as string;
+
+    if (!file || !metadataStr) {
+      return NextResponse.json(
+        { error: 'Missing file or metadata' },
+        { status: 400 }
+      );
+    }
+
+    // Parse metadata
+    let metadata;
+    try {
+      metadata = JSON.parse(metadataStr);
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid metadata format' },
+        { status: 400 }
+      );
+    }
+
+    // Validate file type and size
+    if (!file.type.startsWith('image/')) {
+      return NextResponse.json(
+        { error: 'File must be an image' },
+        { status: 400 }
+      );
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      // 50MB limit
+      return NextResponse.json(
+        { error: 'File size exceeds 50MB limit' },
+        { status: 400 }
+      );
+    }
+
+    // Import the screenshots API
+    const { screenshotsAPI } = await import('@/api/screenshots');
+
+    // Upload screenshot
+    const screenshot = await screenshotsAPI.uploadScreenshot(
+      file,
+      metadata,
+      userId
+    );
 
     return NextResponse.json({
       success: true,
-      data: {
-        id: 'temp-id',
-        message: 'Screenshot upload endpoint ready',
-      },
+      data: screenshot,
     });
   } catch (error) {
     console.error('Error uploading screenshot:', error);
