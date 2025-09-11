@@ -24,6 +24,12 @@ export class UIManager {
   ) {
     this.elementSelectionManager = elementSelectionManager;
     this.editHistoryManager = editHistoryManager;
+    
+    // Set up callback for selection changes
+    this.elementSelectionManager.setOnSelectionChange(() => {
+      this.updateSelectedElementsDisplay();
+    });
+    
     this.setupWindowListeners();
   }
 

@@ -23,6 +23,7 @@ export class ElementSelectionManager {
   private lastMouseOverTime = 0;
   private elementInfoTooltip: HTMLElement | null = null;
   private tooltipThrottle: ReturnType<typeof setTimeout> | null = null;
+  private onSelectionChange: (() => void) | null = null;
 
   private readonly CSS_CLASSES = {
     HIGHLIGHT: 'peekberry-highlight',
@@ -72,6 +73,13 @@ export class ElementSelectionManager {
   }
 
   /**
+   * Set callback for selection changes
+   */
+  public setOnSelectionChange(callback: () => void): void {
+    this.onSelectionChange = callback;
+  }
+
+  /**
    * Clear selected elements
    */
   public clearSelection(): void {
@@ -79,6 +87,11 @@ export class ElementSelectionManager {
       el.classList.remove(this.CSS_CLASSES.SELECTED);
     });
     this.selectedElements = [];
+    
+    // Notify UI manager to update display
+    if (this.onSelectionChange) {
+      this.onSelectionChange();
+    }
   }
 
   /**
@@ -89,6 +102,11 @@ export class ElementSelectionManager {
     if (element) {
       element.classList.remove(this.CSS_CLASSES.SELECTED);
       this.selectedElements.splice(index, 1);
+      
+      // Notify UI manager to update display
+      if (this.onSelectionChange) {
+        this.onSelectionChange();
+      }
     }
   }
 
@@ -248,6 +266,11 @@ export class ElementSelectionManager {
     if (!this.selectedElements.includes(element)) {
       this.selectedElements.push(element);
       element.classList.add(this.CSS_CLASSES.SELECTED);
+      
+      // Notify UI manager to update display
+      if (this.onSelectionChange) {
+        this.onSelectionChange();
+      }
     }
   }
 
