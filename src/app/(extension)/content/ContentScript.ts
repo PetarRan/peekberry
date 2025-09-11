@@ -236,7 +236,6 @@ export class PeekberryContentScript {
     ) {
       this.mutationManager.restoreAllModifications();
       this.editHistoryManager.clearHistory();
-      this.uiManager.updateUndoRedoButtonStates();
       showQuickStatus('All modifications restored', 'success', 3000);
     }
   }

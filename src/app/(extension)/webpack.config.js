@@ -23,15 +23,39 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.ts$/,
-        use: 'ts-loader',
+        test: /\.tsx?$/,
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: [
+                ['@babel/preset-env', { 
+                  targets: { chrome: '88' },
+                  modules: false
+                }],
+                ['@babel/preset-react', { 
+                  runtime: 'automatic',
+                  importSource: 'react'
+                }],
+                '@babel/preset-typescript'
+              ],
+              plugins: [
+                '@babel/plugin-transform-class-properties'
+              ]
+            }
+          }
+        ],
         exclude: /node_modules/,
       },
     ],
   },
 
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.tsx', '.ts', '.js', '.jsx'],
+    modules: [
+      path.resolve(__dirname, '../../node_modules'),
+      'node_modules'
+    ]
   },
 
   plugins: [

@@ -14,6 +14,8 @@ class PeekberryPopup {
       ? 'https://peekberry.app'
       : 'http://localhost:3000';
 
+  private isSelectionActive = false;
+
   private elements: {
     loading: HTMLElement;
     content: HTMLElement;
@@ -91,6 +93,9 @@ class PeekberryPopup {
       // Check authentication status
       const authStatus = await this.checkAuthStatus();
       this.updateAuthUI(authStatus);
+
+      // Check selection state
+      await this.checkSelectionState();
 
       // Show content and hide loading
       this.elements.loading.style.display = 'none';
@@ -245,6 +250,10 @@ class PeekberryPopup {
         throw new Error('No active tab found');
       }
 
+      // Update button state immediately for better UX
+      this.isSelectionActive = !this.isSelectionActive;
+      this.updateToggleButton();
+
       // Send message to content script
       chrome.tabs.sendMessage(
         tab.id,
@@ -255,6 +264,9 @@ class PeekberryPopup {
               'Error toggling selection:',
               chrome.runtime.lastError
             );
+            // Revert button state on error
+            this.isSelectionActive = !this.isSelectionActive;
+            this.updateToggleButton();
             this.showError('Failed to toggle element selection');
           } else {
             // Close popup after successful action
@@ -264,7 +276,54 @@ class PeekberryPopup {
       );
     } catch (error) {
       console.error('Error in toggle selection:', error);
+      // Revert button state on error
+      this.isSelectionActive = !this.isSelectionActive;
+      this.updateToggleButton();
       this.showError('Failed to toggle element selection');
+    }
+  }
+
+  /**
+   * Check current selection state from content script
+   */
+  private async checkSelectionState(): Promise<void> {
+    try {
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+
+      if (!tab.id) {
+        return;
+      }
+
+      chrome.tabs.sendMessage(
+        tab.id,
+        { type: 'GET_SELECTION_STATE' },
+        (response) => {
+          if (!chrome.runtime.lastError && response?.success) {
+            this.isSelectionActive = response.isActive || false;
+            this.updateToggleButton();
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error checking selection state:', error);
+    }
+  }
+
+  /**
+   * Update toggle button appearance and text
+   */
+  private updateToggleButton(): void {
+    if (this.isSelectionActive) {
+      this.elements.toggleSelection.textContent = 'Stop Element Selection';
+      this.elements.toggleSelection.style.background = '#ef4444';
+      this.elements.toggleSelection.style.borderColor = '#dc2626';
+    } else {
+      this.elements.toggleSelection.textContent = 'Start Element Selection';
+      this.elements.toggleSelection.style.background = '#22c55e';
+      this.elements.toggleSelection.style.borderColor = '#16a34a';
     }
   }
 

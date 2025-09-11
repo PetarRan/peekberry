@@ -83,6 +83,13 @@ export class EventManager {
         sendResponse({ success: true });
         break;
 
+      case 'GET_SELECTION_STATE':
+        sendResponse({ 
+          success: true, 
+          isActive: this.elementSelectionManager.isSelectionActive() 
+        });
+        break;
+
       case 'APPLY_MUTATION':
         this.mutationManager.applyMutation(message.payload);
         sendResponse({ success: true });

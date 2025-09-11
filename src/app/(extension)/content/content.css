@@ -112,22 +112,27 @@
   bottom: 80px !important;
 }
 
-/* Chat panel - slide-in from right */
+/* Chat panel - Figma design with glossy background */
 .peekberry-chat-panel {
   position: fixed !important;
   top: 20px !important;
-  right: 20px !important;
+  right: 10px !important;
   width: 380px !important;
-  max-height: calc(100vh - 40px) !important;
-  background: #1e1e1e !important;
-  border: 1px solid #333333 !important;
-  border-radius: 12px !important;
+  height: auto !important;
+  max-height: 400px !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(15px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 16px !important;
   z-index: 2147483646 !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3) !important;
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
   animation: peekberrySlideIn 0.3s ease-out !important;
+  min-width: 300px !important;
+  min-height: 200px !important;
+  padding-left: 8px !important;
 }
 
 @keyframes peekberrySlideIn {
@@ -166,7 +171,6 @@
 
 .peekberry-undo-btn,
 .peekberry-redo-btn,
-.peekberry-history-btn,
 .peekberry-close-btn {
   background: none !important;
   border: none !important;
@@ -188,7 +192,6 @@
 
 .peekberry-undo-btn:hover:not(:disabled),
 .peekberry-redo-btn:hover:not(:disabled),
-.peekberry-history-btn:hover,
 .peekberry-close-btn:hover {
   background: #333333 !important;
   color: #f0f0f0 !important;
@@ -568,149 +571,6 @@
   .peekberry-bubble:hover {
     transform: none !important;
   }
-} /* 
-History panel - slide-in from right */
-.peekberry-history-panel {
-  position: fixed !important;
-  background: #1e1e1e !important;
-  border: 1px solid #333333 !important;
-  border-radius: 12px !important;
-  z-index: 2147483647 !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-  animation: peekberrySlideInFromRight 0.3s ease-out !important;
-}
-
-@keyframes peekberrySlideInFromRight {
-  from {
-    transform: translateX(100%) !important;
-    opacity: 0 !important;
-  }
-  to {
-    transform: translateX(0) !important;
-    opacity: 1 !important;
-  }
-}
-
-.peekberry-history-header {
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  padding: 16px 20px !important;
-  background: #0d0d0d !important;
-  border-bottom: 1px solid #333333 !important;
-}
-
-.peekberry-history-back {
-  background: none !important;
-  border: none !important;
-  color: #aaaaaa !important;
-  cursor: pointer !important;
-  padding: 4px !important;
-  width: 24px !important;
-  height: 24px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border-radius: 4px !important;
-  transition: all 0.2s ease !important;
-}
-
-.peekberry-history-back:hover {
-  background: #333333 !important;
-  color: #f0f0f0 !important;
-}
-
-.peekberry-history-title {
-  color: #f0f0f0 !important;
-  font-size: 16px !important;
-  font-weight: 600 !important;
-  margin: 0 !important;
-}
-
-.peekberry-history-content {
-  padding: 16px !important;
-  flex: 1 !important;
-  overflow-y: auto !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 8px !important;
-}
-
-.peekberry-history-empty {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 40px 20px !important;
-  text-align: center !important;
-}
-
-.peekberry-history-empty-title {
-  color: #f0f0f0 !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  margin-bottom: 8px !important;
-}
-
-.peekberry-history-empty-text {
-  color: #aaaaaa !important;
-  font-size: 12px !important;
-}
-
-.peekberry-history-entry {
-  background: #2c2c2c !important;
-  border-radius: 8px !important;
-  padding: 12px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
-  transition: background-color 0.2s ease !important;
-}
-
-.peekberry-history-entry:hover {
-  background: #333333 !important;
-}
-
-.peekberry-history-entry-content {
-  flex: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 4px !important;
-}
-
-.peekberry-history-entry-text {
-  color: #f0f0f0 !important;
-  font-size: 13px !important;
-  line-height: 1.4 !important;
-}
-
-.peekberry-history-entry-time {
-  color: #aaaaaa !important;
-  font-size: 11px !important;
-}
-
-.peekberry-revert-btn {
-  background: #2c2c2c !important;
-  border: 1px solid #404040 !important;
-  color: #f0f0f0 !important;
-  border-radius: 16px !important;
-  padding: 4px 12px !important;
-  font-size: 11px !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  outline: none !important;
-  font-family: inherit !important;
-  white-space: nowrap !important;
-}
-
-.peekberry-revert-btn:hover {
-  background: #404040 !important;
-  border-color: #555555 !important;
 }
 
 /* Notifications */
@@ -799,6 +659,406 @@ History panel - slide-in from right */
 .peekberry-remove-element:hover {
   background: #555555 !important;
   color: #f0f0f0 !important;
+}
+
+/* Drag Handler */
+.peekberry-drag-handler {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  width: 24px !important;
+  height: 24px !important;
+  cursor: move !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+}
+
+.peekberry-drag-dots {
+  display: flex !important;
+  gap: 2px !important;
+}
+
+.peekberry-drag-dot {
+  width: 4px !important;
+  height: 4px !important;
+  background: rgba(255, 255, 255, 0.4) !important;
+  border-radius: 50% !important;
+}
+
+/* React ChatPanel specific styles */
+.peekberry-chat-messages {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  min-height: 0 !important;
+  background: transparent !important;
+}
+
+.peekberry-welcome-message {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  padding: 20px !important;
+  gap: 16px !important;
+}
+
+.peekberry-welcome-icon {
+  font-size: 48px !important;
+  opacity: 0.8 !important;
+}
+
+.peekberry-welcome-text h3 {
+  color: #f0f0f0 !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  margin: 0 0 8px 0 !important;
+}
+
+.peekberry-welcome-text p {
+  color: #aaaaaa !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  max-width: 280px !important;
+}
+
+/* Horizontal Selected Elements */
+.peekberry-selected-elements-horizontal {
+  padding: 12px 16px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: transparent !important;
+  flex-shrink: 0 !important;
+}
+
+.peekberry-elements-scroll {
+  display: flex !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding-bottom: 4px !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent !important;
+}
+
+.peekberry-elements-scroll::-webkit-scrollbar {
+  height: 4px !important;
+  width: 4px !important;
+}
+
+.peekberry-elements-scroll::-webkit-scrollbar-track {
+  background: transparent !important;
+  border: none !important;
+}
+
+.peekberry-elements-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 2px !important;
+  border: none !important;
+}
+
+.peekberry-elements-scroll::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+.peekberry-element-tag-horizontal {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  padding: 6px 12px !important;
+  border-radius: 20px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  transition: all 0.2s ease !important;
+}
+
+.peekberry-element-tag-horizontal:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.peekberry-elements-help {
+  text-align: center !important;
+  padding: 8px !important;
+}
+
+.peekberry-help-text {
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: 12px !important;
+  font-style: italic !important;
+}
+
+/* Chat input styles for React component */
+.peekberry-chat-input-container {
+  padding: 16px !important;
+  background: transparent !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.peekberry-input-wrapper {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+  padding: 10px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+}
+
+.peekberry-input-wrapper:focus-within {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1) !important;
+}
+
+.peekberry-input-field {
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 14px !important;
+  font-family: inherit !important;
+  padding: 0 !important;
+  resize: none !important;
+  min-height: 20px !important;
+  max-height: 120px !important;
+  outline: none !important;
+  width: 100% !important;
+  line-height: 1.4 !important;
+}
+
+.peekberry-input-actions {
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.peekberry-more-btn {
+  background: none !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  cursor: pointer !important;
+  padding: 4px !important;
+  width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+}
+
+.peekberry-more-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.peekberry-input-field:focus {
+  border-color: #555555 !important;
+}
+
+.peekberry-input-field::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.peekberry-send-btn {
+  background: #22c55e !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 10px 20px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  outline: none !important;
+  font-family: inherit !important;
+  align-self: flex-end !important;
+}
+
+.peekberry-send-btn:hover:not(:disabled) {
+  background: #16a34a !important;
+  transform: translateY(-1px) !important;
+}
+
+.peekberry-send-btn:disabled {
+  background: #333333 !important;
+  color: #666666 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* Controls Row */
+.peekberry-controls-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  margin-top: 8px !important;
+}
+
+.peekberry-controls-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.peekberry-controls-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.peekberry-control-btn {
+  background: none !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  cursor: pointer !important;
+  padding: 6px !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.peekberry-control-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.peekberry-model-selector {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.peekberry-model-dropdown {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 6px !important;
+  color: #ffffff !important;
+  font-size: 12px !important;
+  padding: 4px 8px !important;
+  outline: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.peekberry-model-dropdown:hover {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.peekberry-model-dropdown:focus {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1) !important;
+}
+
+.peekberry-apply-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  outline: none !important;
+  font-family: inherit !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.peekberry-apply-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.9) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2) !important;
+}
+
+.peekberry-apply-btn:disabled {
+  background: rgba(255, 255, 255, 0.3) !important;
+  color: rgba(0, 0, 0, 0.5) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Chat message styles */
+.peekberry-message {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  margin-bottom: 12px !important;
+}
+
+.peekberry-message-user {
+  align-items: flex-end !important;
+}
+
+.peekberry-message-ai {
+  align-items: flex-start !important;
+}
+
+.peekberry-message-system {
+  align-items: center !important;
+}
+
+.peekberry-message-content {
+  background: #2c2c2c !important;
+  color: #f0f0f0 !important;
+  padding: 12px 16px !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  max-width: 280px !important;
+  word-wrap: break-word !important;
+}
+
+.peekberry-message-user .peekberry-message-content {
+  background: #22c55e !important;
+  color: #ffffff !important;
+  border-bottom-right-radius: 4px !important;
+}
+
+.peekberry-message-ai .peekberry-message-content {
+  background: #333333 !important;
+  color: #f0f0f0 !important;
+  border-bottom-left-radius: 4px !important;
+}
+
+.peekberry-message-system .peekberry-message-content {
+  background: #1a1a1a !important;
+  color: #aaaaaa !important;
+  font-style: italic !important;
+  text-align: center !important;
+  font-size: 12px !important;
+  padding: 8px 12px !important;
+}
+
+.peekberry-message-time {
+  color: #666666 !important;
+  font-size: 11px !important;
+  padding: 0 4px !important;
 }
 
 /* Mobile responsive adjustments */
