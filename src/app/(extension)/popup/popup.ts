@@ -149,6 +149,8 @@ class PeekberryPopup {
    * Handle sign in button click
    */
   private handleSignIn(): void {
+    console.log('Opening auth page...');
+    
     // Open webapp in new tab for authentication
     chrome.tabs.create({
       url: `${this.WEBAPP_URL}/extension-auth`,
@@ -158,14 +160,19 @@ class PeekberryPopup {
     // Set up a listener for when the user comes back
     this.setupAuthListener();
 
-    // Close popup
-    window.close();
+    // Show loading state instead of closing
+    this.elements.authText.textContent = 'Please complete authentication in the new tab...';
+    this.elements.authButton.textContent = 'Waiting for auth...';
+    this.elements.authButton.disabled = true;
   }
 
   /**
    * Set up listener for authentication completion
    */
   private setupAuthListener(): void {
+    let syncAttempts = 0;
+    const maxAttempts = 10;
+    
     // Listen for tab updates to detect when auth is complete
     const listener = (
       tabId: number,
@@ -174,19 +181,42 @@ class PeekberryPopup {
     ) => {
       if (
         changeInfo.status === 'complete' &&
-        tab.url?.includes(this.WEBAPP_URL)
+        tab.url?.includes('/extension-auth')
       ) {
-        // Try to sync auth after a short delay
-        setTimeout(() => {
+        console.log('Extension auth page loaded, attempting to sync...');
+        
+        // Try to sync auth with retries
+        const attemptSync = () => {
+          syncAttempts++;
+          console.log(`Auth sync attempt ${syncAttempts}/${maxAttempts}`);
+          
           chrome.runtime.sendMessage(
             { type: 'SYNC_AUTH_FROM_WEBAPP' },
             (response) => {
               if (response?.success) {
-                console.log('Auth sync completed');
+                console.log('Auth sync completed successfully');
+                // Refresh the popup to show updated auth status
+                this.initializePopup();
+                chrome.tabs.onUpdated.removeListener(listener);
+              } else {
+                console.log(`Auth sync failed (attempt ${syncAttempts}):`, response);
+                if (syncAttempts < maxAttempts) {
+                  // Retry after 1 second
+                  setTimeout(attemptSync, 1000);
+                } else {
+                  // Show manual refresh option
+                  this.elements.authText.textContent = 'Auth completed but sync failed. Click to refresh.';
+                  this.elements.authButton.textContent = 'Refresh Auth Status';
+                  this.elements.authButton.disabled = false;
+                  this.elements.authButton.onclick = () => this.initializePopup();
+                }
               }
             }
           );
-        }, 1000);
+        };
+        
+        // Start sync attempts after a delay
+        setTimeout(attemptSync, 2000);
       }
     };
 

@@ -98,15 +98,23 @@ class PeekberryBackground {
           break;
 
         case 'STORE_AUTH_TOKEN':
+          console.log('Received STORE_AUTH_TOKEN message:', message.payload);
           await safeAsyncOperation(
             () => this.storeAuthToken(message.payload),
             context
           );
+          // Notify content scripts about auth change
+          await this.notifyContentScriptsAuthChange();
           sendResponse({ success: true });
           break;
 
         case 'CLEAR_AUTH_TOKEN':
           await safeAsyncOperation(() => this.clearAuthToken(), context);
+          sendResponse({ success: true });
+          break;
+
+        case 'OPEN_AUTH_PAGE':
+          await safeAsyncOperation(() => this.openAuthPage(), context);
           sendResponse({ success: true });
           break;
 
@@ -230,11 +238,19 @@ class PeekberryBackground {
    * Store authentication token
    */
   private async storeAuthToken(tokenData: AuthToken): Promise<void> {
+    console.log('Storing auth token:', { 
+      token: tokenData.token?.substring(0, 10) + '...', 
+      userId: tokenData.userId,
+      expiresAt: new Date(tokenData.expiresAt).toISOString()
+    });
+    
     await chrome.storage.local.set({
       [this.STORAGE_KEYS.AUTH_TOKEN]: tokenData.token,
       [this.STORAGE_KEYS.USER_ID]: tokenData.userId,
       peekberry_token_expires: tokenData.expiresAt,
     });
+    
+    console.log('Auth token stored successfully');
   }
 
   /**
@@ -282,45 +298,92 @@ class PeekberryBackground {
    */
   private async syncAuthFromWebapp(): Promise<void> {
     try {
-      // Create a new tab to check for auth token in webapp
-      const tab = await chrome.tabs.create({
-        url: `${this.API_BASE_URL}/extension-auth`,
-        active: false,
+      console.log('Starting auth sync from webapp...');
+      
+      // Find the webapp tab (extension-auth page)
+      const tabs = await chrome.tabs.query({
+        url: `${this.API_BASE_URL}/extension-auth*`,
       });
 
-      // Wait a moment for the page to load and set up auth
-      setTimeout(async () => {
-        if (tab.id) {
-          try {
-            // Execute script to check for auth token
-            const results = await chrome.scripting.executeScript({
-              target: { tabId: tab.id },
-              func: () => {
-                const tokenData = localStorage.getItem(
-                  'peekberry_extension_token'
-                );
-                return tokenData ? JSON.parse(tokenData) : null;
-              },
-            });
+      console.log(`Found ${tabs.length} webapp tabs:`, tabs.map(t => ({ id: t.id, url: t.url })));
 
-            if (results && results[0] && results[0].result) {
-              const tokenData = results[0].result;
-              await this.storeAuthToken(tokenData);
-              console.log('Successfully synced auth token from webapp');
-            }
+      if (tabs.length === 0) {
+        console.log('No webapp tab found, creating new one');
+        // Create a new tab if none exists
+        const tab = await chrome.tabs.create({
+          url: `${this.API_BASE_URL}/extension-auth`,
+          active: false,
+        });
 
-            // Close the tab
-            chrome.tabs.remove(tab.id);
-          } catch (error) {
-            console.error('Error executing script in webapp tab:', error);
-            if (tab.id) {
-              chrome.tabs.remove(tab.id);
-            }
+        // Wait for the page to load and try to get the token
+        setTimeout(async () => {
+          if (tab.id) {
+            console.log('Attempting to extract token from new tab:', tab.id);
+            await this.extractTokenFromTab(tab.id);
           }
-        }
-      }, 2000);
+        }, 3000);
+        return;
+      }
+
+      // Use the existing webapp tab
+      const webappTab = tabs[0];
+      console.log('Using existing webapp tab:', webappTab.id);
+      if (webappTab.id) {
+        await this.extractTokenFromTab(webappTab.id);
+      }
     } catch (error) {
       console.error('Error syncing auth from webapp:', error);
+    }
+  }
+
+  /**
+   * Extract token from a specific tab
+   */
+  private async extractTokenFromTab(tabId: number): Promise<void> {
+    try {
+      console.log(`Extracting token from tab ${tabId}...`);
+      
+      // Execute script to check for auth token
+      const results = await chrome.scripting.executeScript({
+        target: { tabId },
+        func: () => {
+          const tokenData = localStorage.getItem('peekberry_extension_token');
+          console.log('Token data from localStorage:', tokenData);
+          return tokenData ? JSON.parse(tokenData) : null;
+        },
+      });
+
+      console.log('Script execution results:', results);
+
+      if (results && results[0] && results[0].result) {
+        const tokenData = results[0].result;
+        console.log('Found token data:', tokenData);
+        await this.storeAuthToken(tokenData);
+        console.log('Successfully synced auth token from webapp');
+        
+        // Notify content scripts about auth change
+        await this.notifyContentScriptsAuthChange();
+      } else {
+        console.log('No auth token found in webapp localStorage');
+      }
+    } catch (error) {
+      console.error('Error extracting token from tab:', error);
+    }
+  }
+
+  /**
+   * Open authentication page
+   */
+  private async openAuthPage(): Promise<void> {
+    try {
+      await chrome.tabs.create({
+        url: `${this.API_BASE_URL}/extension-auth`,
+        active: true,
+      });
+      console.log('Opened auth page');
+    } catch (error) {
+      console.error('Error opening auth page:', error);
+      throw error;
     }
   }
 
@@ -373,7 +436,9 @@ class PeekberryBackground {
    */
   private async notifyContentScriptsAuthChange(): Promise<void> {
     try {
+      console.log('Notifying content scripts about auth change...');
       const tabs = await chrome.tabs.query({});
+      console.log(`Found ${tabs.length} tabs to notify`);
 
       for (const tab of tabs) {
         if (
@@ -383,12 +448,15 @@ class PeekberryBackground {
           !tab.url.startsWith('chrome-extension://')
         ) {
           try {
+            console.log(`Sending REFRESH_AUTH_STATUS to tab ${tab.id}: ${tab.url}`);
             chrome.tabs.sendMessage(tab.id, { type: 'REFRESH_AUTH_STATUS' });
           } catch (error) {
+            console.log(`Failed to send message to tab ${tab.id}:`, error instanceof Error ? error.message : String(error));
             // Ignore errors for tabs without content script
           }
         }
       }
+      console.log('Finished notifying content scripts');
     } catch (error) {
       console.error('Error notifying content scripts:', error);
     }

@@ -46,8 +46,13 @@ class IntegrationManager {
    */
   public async initialize(): Promise<void> {
     try {
-      // Check browser compatibility
-      this.checkBrowserCompatibility();
+      // Check browser compatibility (non-blocking)
+      try {
+        this.checkBrowserCompatibility();
+      } catch (compatibilityError) {
+        console.warn('Peekberry: Browser compatibility check failed:', compatibilityError);
+        // Continue with limited functionality
+      }
 
       // Initialize connection status
       await this.updateConnectionStatus();
@@ -57,18 +62,8 @@ class IntegrationManager {
 
       console.log('Peekberry integration manager initialized');
     } catch (error) {
-      logError(
-        createPeekberryError(
-          error as Error,
-          ERROR_CODES.EXTENSION_NOT_AVAILABLE,
-          {
-            component: 'IntegrationManager',
-            operation: 'initialize',
-            url: window.location.href,
-            timestamp: new Date(),
-          }
-        )
-      );
+      console.warn('Peekberry: Integration manager initialization failed:', error);
+      // Don't throw the error, just log it and continue with limited functionality
     }
   }
 
@@ -76,18 +71,24 @@ class IntegrationManager {
    * Check browser compatibility and feature support
    */
   private checkBrowserCompatibility(): void {
-    const requiredFeatures = [
+    // Features available in content scripts
+    const contentScriptFeatures = [
       'chrome.runtime',
-      'chrome.storage',
-      'chrome.tabs',
       'fetch',
       'Promise',
       'MutationObserver',
     ];
 
+    // Features available in background scripts (not checked in content script)
+    const backgroundScriptFeatures = [
+      'chrome.storage',
+      'chrome.tabs',
+    ];
+
     const missingFeatures: string[] = [];
 
-    requiredFeatures.forEach((feature) => {
+    // Only check features available in content scripts
+    contentScriptFeatures.forEach((feature) => {
       if (feature.includes('.')) {
         const [obj, prop] = feature.split('.');
         if (!(window as any)[obj] || !(window as any)[obj][prop]) {
@@ -112,7 +113,7 @@ class IntegrationManager {
     }
 
     // Update connection status with supported features
-    this.connectionStatus.features = requiredFeatures;
+    this.connectionStatus.features = [...contentScriptFeatures, ...backgroundScriptFeatures];
     this.connectionStatus.version = chrome.runtime.getManifest().version;
   }
 
@@ -445,10 +446,8 @@ class IntegrationManager {
 // Export singleton instance
 export const integrationManager = new IntegrationManager();
 
-// Auto-initialize when module loads
-if (typeof window !== 'undefined') {
-  integrationManager.initialize().catch(console.error);
-}
+// Don't auto-initialize - let the content script handle initialization
+// This prevents errors during module loading when APIs might not be ready
 
 // Export utility functions
 export function withLoadingState<T>(
