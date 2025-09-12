@@ -235,18 +235,42 @@ export class ImageUploadService {
   static async getImageDimensions(
     file: File
   ): Promise<{ width: number; height: number }> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-
-      img.onload = () => {
-        resolve({
-          width: img.naturalWidth,
-          height: img.naturalHeight,
-        });
-      };
-
-      img.onerror = () => reject(new Error('Failed to load image'));
-      img.src = URL.createObjectURL(file);
-    });
+    // Check if we're on the server side
+    if (typeof window === 'undefined') {
+      // Server-side: use sharp
+      const sharp = require('sharp');
+      
+      try {
+        const buffer = await file.arrayBuffer();
+        const metadata = await sharp(Buffer.from(buffer)).metadata();
+        
+        return {
+          width: metadata.width || 0,
+          height: metadata.height || 0,
+        };
+      } catch (error) {
+        throw new Error('Failed to get image dimensions');
+      }
+    } else {
+      // Client-side: use Image element
+      return new Promise((resolve, reject) => {
+        const img = document.createElement('img');
+        
+        img.onload = () => {
+          resolve({
+            width: img.naturalWidth,
+            height: img.naturalHeight,
+          });
+          URL.revokeObjectURL(img.src);
+        };
+        
+        img.onerror = () => {
+          reject(new Error('Failed to load image'));
+          URL.revokeObjectURL(img.src);
+        };
+        
+        img.src = URL.createObjectURL(file);
+      });
+    }
   }
 }

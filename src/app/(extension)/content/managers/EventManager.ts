@@ -97,13 +97,11 @@ export class EventManager {
 
       case 'UNDO_LAST_EDIT':
         const undoSuccess = this.editHistoryManager.undo();
-        this.uiManager.updateUndoRedoButtonStates();
         sendResponse({ success: undoSuccess });
         break;
 
       case 'REDO_EDIT':
         const redoSuccess = this.editHistoryManager.redo();
-        this.uiManager.updateUndoRedoButtonStates();
         sendResponse({ success: redoSuccess });
         break;
 
@@ -225,7 +223,6 @@ export class EventManager {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         const success = this.editHistoryManager.undo();
-        this.uiManager.updateUndoRedoButtonStates();
         if (success) {
           showSuccess('Edit undone');
         } else {
@@ -237,7 +234,6 @@ export class EventManager {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) {
         e.preventDefault();
         const success = this.editHistoryManager.redo();
-        this.uiManager.updateUndoRedoButtonStates();
         if (success) {
           showSuccess('Edit redone');
         } else {
@@ -253,7 +249,6 @@ export class EventManager {
         ) {
           this.mutationManager.restoreAllModifications();
           this.editHistoryManager.clearHistory();
-          this.uiManager.updateUndoRedoButtonStates();
         }
       }
     });
@@ -370,7 +365,6 @@ export class EventManager {
 
           // Update UI
           this.uiManager.updateSelectedElementsDisplay();
-          this.uiManager.updateUndoRedoButtonStates();
         },
         `Processing ${selectedElements.length} element(s)`
       );
@@ -475,7 +469,6 @@ export class EventManager {
 
     // Update UI
     this.uiManager.updateSelectedElementsDisplay();
-    this.uiManager.updateUndoRedoButtonStates();
 
     console.log('Page navigation handled - edit session cleared');
   }
@@ -495,7 +488,6 @@ export class EventManager {
 
     // Cleanup any invalid history entries
     // Note: These methods would need to be exposed by EditHistoryManager
-    this.uiManager.updateUndoRedoButtonStates();
   }
 
   /**

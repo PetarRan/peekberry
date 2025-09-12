@@ -183,7 +183,10 @@ export class PeekberryContentScript {
       this.checkAuthStatus()
         .then((authStatus) => {
           if (authStatus.isAuthenticated) {
-            this.elementSelectionManager.enable();
+            // Only enable selection if it's not manually disabled
+            if (this.elementSelectionManager.isSelectionActive()) {
+              this.elementSelectionManager.enable();
+            }
             this.uiManager.createBubble(true);
           } else {
             this.elementSelectionManager.disable();
