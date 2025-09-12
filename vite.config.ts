@@ -7,11 +7,14 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        // Only build the content script
+        // Build both the popup and content script
+        popup: resolve(__dirname, "index.html"),
         content: resolve(__dirname, "src/contentScript.tsx"),
       },
       output: {
-        entryFileNames: "contentScript.js",
+        entryFileNames: (chunkInfo) => {
+          return chunkInfo.name === 'content' ? 'contentScript.js' : 'assets/[name]-[hash].js';
+        },
       },
     },
     outDir: "dist",
