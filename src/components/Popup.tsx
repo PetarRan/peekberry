@@ -4,12 +4,17 @@ import {
   Card,
   Chip,
   CircularProgress,
+  IconButton,
+  InputAdornment,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
 import type { SelectedElement } from "../hooks/useElementSelection";
+import { useSpeechToText } from "../hooks/useSpeechToText";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+import MicIcon from "@mui/icons-material/Mic";
+import MicOffIcon from "@mui/icons-material/MicOff";
 
 interface PopupProps {
   selectedElements: SelectedElement[];
@@ -31,6 +36,8 @@ export const Popup = ({
 }: PopupProps) => {
   const [prompt, setPrompt] = useState("");
   const textFieldRef = useRef<HTMLInputElement>(null);
+  const { isRecording, isProcessing, startRecording, stopRecording, error } =
+    useSpeechToText();
 
   const handleSendToLLM = () => {
     onSendToLLM(prompt);
@@ -48,10 +55,22 @@ export const Popup = ({
     }
   };
 
+  const handleVoiceRecording = async () => {
+    if (isRecording) {
+      // Stop recording and get transcription
+      const transcription = await stopRecording();
+      if (transcription) {
+        setPrompt((prev) => prev + (prev ? " " : "") + transcription);
+      }
+    } else {
+      // Start recording
+      await startRecording();
+    }
+  };
+
   // Auto-focus the TextField when elements are selected
   useEffect(() => {
     if (selectedElements.length > 0 && textFieldRef.current) {
-      // Use setTimeout to ensure the DOM is ready
       setTimeout(() => {
         if (textFieldRef.current) {
           textFieldRef.current.focus();
@@ -59,6 +78,13 @@ export const Popup = ({
       }, 100);
     }
   }, [selectedElements.length]);
+
+  // Show error if any
+  useEffect(() => {
+    if (error) {
+      console.error("Speech-to-text error:", error);
+    }
+  }, [error]);
 
   return (
     <Card
@@ -108,8 +134,29 @@ export const Popup = ({
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Prompt text"
+          placeholder={isProcessing ? "Processing speech..." : "Prompt text"}
           style={{ width: "100%", marginTop: "5px" }}
+          disabled={isProcessing}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={handleVoiceRecording}
+                  edge="end"
+                  color={isRecording ? "error" : "default"}
+                  disabled={isLoading || isProcessing}
+                >
+                  {isProcessing ? (
+                    <CircularProgress size={20} />
+                  ) : isRecording ? (
+                    <MicOffIcon />
+                  ) : (
+                    <MicIcon />
+                  )}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
         />
 
         <Stack direction="row" spacing={1}>
