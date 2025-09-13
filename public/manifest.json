@@ -10,8 +10,9 @@
   },
   "description": "Select and modify elements on any page.",
   "permissions": ["scripting", "activeTab", "tabs"],
-  "action": {
-    "default_popup": "index.html"
+  "action": {},
+  "background": {
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {

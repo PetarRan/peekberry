@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && npm run build:background",
     "lint": "eslint .",
     "preview": "vite preview",
     "dev:admin": "vite --config vite.config.admin.ts",
-    "build:admin": "vite build --config vite.config.admin.ts"
+    "build:admin": "vite build --config vite.config.admin.ts",
+    "build:background": "vite build --config vite.config.background.ts"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.47.0",
