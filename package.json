@@ -7,9 +7,12 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:admin": "vite --config vite.config.admin.ts",
+    "build:admin": "vite build --config vite.config.admin.ts"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.47.0",
     "@elevenlabs/elevenlabs-js": "^2.15.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
