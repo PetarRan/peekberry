@@ -1,14 +1,18 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 
-// Inject React app into page
-const container = document.createElement("div");
-container.id = "dom-extension-root";
-container.style.zIndex = "100000";
-document.body.appendChild(container);
+const CONTAINER_ID = "dom-extension-root";
 
-const root = createRoot(container);
-root.render(<App />);
+// Prevent duplicate injections
+if (!document.getElementById(CONTAINER_ID)) {
+  const container = document.createElement("div");
+  container.id = CONTAINER_ID;
+  container.style.zIndex = "100000";
+  document.body.appendChild(container);
+
+  const root = createRoot(container);
+  root.render(<App />);
+}
 
 // Minimal screenshot helper (can be called from your App buttons)
 export async function takeScreenshot(prompt: string, action: string) {

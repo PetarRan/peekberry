@@ -10,18 +10,6 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
 
-    const sendToken = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      chrome.runtime.sendMessage({
-        type: "SET_TOKEN",
-        token: session?.access_token,
-        refreshToken: session?.refresh_token,
-        userId: user.id,
-      });
-    };
-
-    sendToken();
-
     const loadData = async () => {
       const { data: shots } = await supabase
         .from("screenshots")
