@@ -13,7 +13,9 @@ interface PopupProps {
   onMouseLeave: () => void;
   onRemoveSelection: (index: number) => void;
   onClearSelections: () => void;
-  onSendToLLM: (prompt: string) => void;
+  onSendToLLM: (prompt: string, model: string) => void;
+  onShowHistory: () => void;
+  onRefreshHistory?: () => void;
   isLoading: boolean;
 }
 
@@ -23,6 +25,8 @@ export const Popup = ({
   onMouseLeave,
   onRemoveSelection,
   onSendToLLM,
+  onShowHistory,
+  onRefreshHistory,
   isLoading,
 }: PopupProps) => {
   const [prompt, setPrompt] = useState("");
@@ -32,7 +36,7 @@ export const Popup = ({
     useSpeechToText();
 
   const handleSendToLLM = () => {
-    onSendToLLM(prompt);
+    onSendToLLM(prompt, selectedModel);
     setPrompt("");
   };
 
@@ -70,7 +74,10 @@ export const Popup = ({
       
       if (success) {
         console.log("Screenshot saved successfully");
-        // You could add a toast notification here
+        // Refresh history to show the new screenshot with a small delay
+        setTimeout(() => {
+          onRefreshHistory?.();
+        }, 500);
       } else {
         console.error("Failed to save screenshot");
       }
@@ -113,6 +120,7 @@ export const Popup = ({
         borderRadius: "8px",
         zIndex: 100001,
         overflow: "hidden",
+        boxShadow: "0 0 20px rgba(255, 255, 255, 0.1), 0 0 40px rgba(255, 255, 255, 0.05)",
       }}
     >
       {/* Selected Elements Display */}
@@ -140,6 +148,7 @@ export const Popup = ({
         onVoiceRecording={handleVoiceRecording}
         onScreenshot={handleScreenshot}
         onApply={handleSendToLLM}
+        onShowHistory={onShowHistory}
         isRecording={isRecording}
         isProcessing={isProcessing}
         isLoading={isLoading}

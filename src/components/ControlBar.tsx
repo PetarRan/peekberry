@@ -19,6 +19,7 @@ interface ControlBarProps {
   onVoiceRecording: () => void;
   onScreenshot: () => void;
   onApply: () => void;
+  onShowHistory: () => void;
   isRecording: boolean;
   isProcessing: boolean;
   isLoading: boolean;
@@ -39,6 +40,7 @@ export const ControlBar = ({
   onVoiceRecording,
   onScreenshot,
   onApply,
+  onShowHistory,
   isRecording,
   isProcessing,
   isLoading,
@@ -71,7 +73,11 @@ export const ControlBar = ({
     >
       {/* Left side - Settings, History, Export */}
       <Stack direction="row" spacing={1}>
-        <IconButton size="small" sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
+        <IconButton 
+          size="small" 
+          onClick={onShowHistory}
+          sx={{ color: "rgba(255, 255, 255, 0.7)" }}
+        >
           <HistoryIcon fontSize="small" />
         </IconButton>
         <IconButton size="small" sx={{ color: "rgba(255, 255, 255, 0.7)" }}>

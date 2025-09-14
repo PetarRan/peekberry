@@ -10,6 +10,7 @@ interface ChangeCardProps {
 
 export default function ChangeCard({ title, url, timeAgo, tags }: ChangeCardProps) {
   const theme = useTheme();
+  console.log(url);
   
   const getTagColor = (tag: string) => {
     switch (tag.toLowerCase()) {
@@ -36,9 +37,9 @@ export default function ChangeCard({ title, url, timeAgo, tags }: ChangeCardProp
           </IconButton>
         </Box>
         
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+        {/* <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
           {url}
-        </Typography>
+        </Typography> */}
         
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
           {timeAgo}

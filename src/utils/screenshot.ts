@@ -1,75 +1,45 @@
 /**
- * Takes a screenshot of the current viewport (excluding the extension UI)
- * and uploads it to Supabase
+ * Ask background.ts to take a screenshot of the active tab
  */
 export const takeScreenshot = async (): Promise<string | null> => {
-  try {
-    // Use Chrome's captureVisibleTab API to take a screenshot
-    const dataUrl = await chrome.tabs.captureVisibleTab({
-      format: 'png',
-      quality: 80
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ type: "CAPTURE_SCREENSHOT" }, (response) => {
+      if (response?.dataUrl) {
+        resolve(response.dataUrl);
+      } else {
+        console.error("Failed to capture screenshot", response?.error);
+        resolve(null);
+      }
     });
-
-    // Convert data URL to blob
-    const response = await fetch(dataUrl);
-    const blob = await response.blob();
-
-    // Create FormData for upload
-    const formData = new FormData();
-    formData.append('file', blob, `screenshot-${Date.now()}.png`);
-
-    // Upload to your edge function
-    const uploadResponse = await fetch('/api/upload-screenshot', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!uploadResponse.ok) {
-      throw new Error('Failed to upload screenshot');
-    }
-
-    const result = await uploadResponse.json();
-    return result.url; // Return the uploaded file URL
-
-  } catch (error) {
-    console.error('Error taking screenshot:', error);
-    return null;
-  }
+  });
 };
 
 /**
- * Takes a screenshot and saves it to Supabase with metadata
+ * Save screenshot to Supabase
  */
-export const saveScreenshotToSupabase = async (metadata?: {
+export const saveScreenshotToSupabase = async (_metadata?: {
   selectedElements?: string[];
   prompt?: string;
   model?: string;
 }): Promise<boolean> => {
   try {
-    const screenshotUrl = await takeScreenshot();
-    
-    if (!screenshotUrl) {
-      return false;
-    }
+    const dataUrl = await takeScreenshot();
+    if (!dataUrl) return false;
 
-    // Save metadata to Supabase
-    const response = await fetch('/api/save-screenshot', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        screenshotUrl,
-        metadata: {
-          timestamp: new Date().toISOString(),
-          ...metadata,
-        },
-      }),
-    });
+    const pageUrl = window.location.href;
 
-    return response.ok;
+    // Import and use the direct Supabase functions
+    const { saveScreenshotToSupabase: saveScreenshot, saveHistoryToSupabase } = await import("./supabaseClient");
+
+    const screenshotSuccess = await saveScreenshot(pageUrl, dataUrl);
+    const historySuccess = await saveHistoryToSupabase(
+      _metadata?.prompt || "Screenshot taken",
+      "screenshot"
+    );
+
+    return screenshotSuccess && historySuccess;
   } catch (error) {
-    console.error('Error saving screenshot to Supabase:', error);
+    console.error("Error saving screenshot to Supabase:", error);
     return false;
   }
 };

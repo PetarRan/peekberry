@@ -2,10 +2,27 @@
 import { supabase } from "./utils/supabase";
 
 // Listen for messages from content scripts / popup / dashboard
-chrome.runtime.onMessage.addListener(async (msg) => {
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg.type === "CAPTURE_SCREENSHOT") {
+    chrome.tabs
+      .captureVisibleTab({ format: "png", quality: 80 })
+      .then((dataUrl) => {
+        console.log("Background script: Screenshot captured successfully");
+        sendResponse({ dataUrl });
+      })
+      .catch((error) => {
+        console.error("Background script: Error taking screenshot:", error);
+        sendResponse({
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      });
+
+    return true;
+  }
+
   if (msg.type === "SET_TOKEN") {
     // Store token & userId in extension storage
-    await chrome.storage.local.set({
+    chrome.storage.local.set({
       token: msg.token,
       refreshToken: msg.refreshToken,
       userId: msg.userId,
@@ -19,42 +36,4 @@ chrome.runtime.onMessage.addListener(async (msg) => {
     });
   }
 
-  if (msg.type === "UPLOAD_SCREENSHOT") {
-    const { token, refreshToken, userId } = await chrome.storage.local.get([
-      "token",
-      "refreshToken",
-      "userId",
-    ]);
-    if (!token || !userId) return console.error("No token found!");
-
-    // Make sure Supabase session is set
-    supabase.auth.setSession({
-      access_token: token,
-      refresh_token: refreshToken,
-    });
-
-    // Upload screenshot to Supabase Storage
-    const filename = `user-${userId}/${Date.now()}.png`;
-    const { data, error: storageError } = await supabase.storage
-      .from("screenshots")
-      .upload(filename, msg.dataUrl, { contentType: "image/png" });
-
-    if (storageError) return console.error("Storage error:", storageError);
-
-    // Insert screenshot record
-    const { error: dbError } = await supabase
-      .from("screenshots")
-      .insert([{ user_id: userId, page_url: msg.pageUrl, image_url: data.path }]);
-
-    if (dbError) console.error("DB error:", dbError);
-
-    // Insert edit history
-    const { error: histError } = await supabase
-      .from("history")
-      .insert([{ user_id: userId, prompt: msg.prompt, action: msg.action }]);
-
-    if (histError) console.error("History error:", histError);
-
-    console.log("Screenshot + history saved successfully!");
-  }
 });
