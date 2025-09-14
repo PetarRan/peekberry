@@ -1,4 +1,4 @@
-import { Box, Typography, Link, useTheme } from '@mui/material';
+import { Box, Typography, Link, useTheme, Skeleton } from '@mui/material';
 import ChangeCard from './ChangeCard';
 
 interface HistoryItem {
@@ -12,9 +12,10 @@ interface HistoryItem {
 
 interface RecentChangesProps {
   history: HistoryItem[];
+  loading?: boolean;
 }
 
-export default function RecentChanges({ history }: RecentChangesProps) {
+export default function RecentChanges({ history, loading = false }: RecentChangesProps) {
   const theme = useTheme();
   
   const formatTimeAgo = (dateString: string) => {
@@ -35,6 +36,27 @@ export default function RecentChanges({ history }: RecentChangesProps) {
     const diffInWeeks = Math.floor(diffInDays / 7);
     return `${diffInWeeks} week${diffInWeeks > 1 ? 's' : ''} ago`;
   };
+
+  if (loading) {
+    return (
+      <Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Recent Changes
+          </Typography>
+          <Skeleton variant="text" width={60} height={20} />
+        </Box>
+        
+        <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Box key={index} sx={{ mb: 2 }}>
+              <Skeleton variant="rectangular" height={80} sx={{ borderRadius: 1 }} />
+            </Box>
+          ))}
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box>

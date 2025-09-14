@@ -1,4 +1,4 @@
-import { Box, Typography, useTheme, Modal, IconButton, Backdrop } from '@mui/material';
+import { Box, Typography, useTheme, Modal, IconButton, Backdrop, Skeleton } from '@mui/material';
 import { Close as CloseIcon, Download as DownloadIcon } from '@mui/icons-material';
 import { useState } from 'react';
 
@@ -10,9 +10,10 @@ interface Screenshot {
 
 interface ScreenshotGalleryProps {
   screenshots: Screenshot[];
+  loading?: boolean;
 }
 
-export default function ScreenshotGallery({ screenshots }: ScreenshotGalleryProps) {
+export default function ScreenshotGallery({ screenshots, loading = false }: ScreenshotGalleryProps) {
   const theme = useTheme();
   const [selectedScreenshot, setSelectedScreenshot] = useState<Screenshot | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -74,6 +75,36 @@ export default function ScreenshotGallery({ screenshots }: ScreenshotGalleryProp
     }
   };
   
+  if (loading) {
+    return (
+      <Box>
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+          Screenshots
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Box
+              key={index}
+              sx={{
+                flex: '1 1 300px',
+                maxWidth: '300px',
+              }}
+            >
+              <Skeleton
+                variant="rectangular"
+                width="100%"
+                height={200}
+                sx={{
+                  borderRadius: 1,
+                }}
+              />
+            </Box>
+          ))}
+        </Box>
+      </Box>
+    );
+  }
+
   if (screenshots.length === 0) {
     return (
       <Box 
