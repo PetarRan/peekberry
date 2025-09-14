@@ -3,25 +3,33 @@ import { createTheme } from "@mui/material/styles";
 // Define your color palette
 const palette = {
   primary: {
-    main: "#1276fb",
-    dark: "#1276fb",
+    main: "#6C757D", // Grey as primary
+    dark: "#495057",
+    light: "#ADB5BD",
     contrastText: "#FFFFFF",
   },
   secondary: {
     main: "#6C757D", // Grey color
     light: "#E9ECEF",
     dark: "#495057",
-    contrastText: "#212529", // Black text for secondary buttons
+    contrastText: "#FFFFFF", // White text for dark buttons
   },
   text: {
-    primary: "#212529",
+    primary: "#2c2c2c", // Dark grey text
     secondary: "#6C757D",
   },
   background: {
-    default: "#FFFFFF",
-    paper: "#FFFFFF",
+    default: "#fafafa", // Bone-ish white background
+    paper: "#f5f5f5", // Slightly greyer for cards
   },
   divider: "#E9ECEF",
+  // Dark mode colors
+  dark: {
+    background: "#00000099", // Semi-transparent black
+    paper: "#1a1a1a", // Slightly greyer for cards
+    text: "#FFFFFA99", // Light grey text
+    divider: "#333333",
+  },
 };
 
 // Create the theme
@@ -76,6 +84,7 @@ const theme = createTheme({
       },
       styleOverrides: {
         root: {
+          backgroundColor: palette.background.paper,
           border: `1px solid ${palette.divider}`, // Border color matching divider
           borderRadius: 10, // Matching your theme's border radius
           padding: 10, // Padding of 2 (16px)
@@ -148,7 +157,7 @@ const theme = createTheme({
     MuiDivider: {
       styleOverrides: {
         root: {
-          borderColor: "#E9ECEF",
+          borderColor: palette.divider,
         },
       },
     },
@@ -193,17 +202,18 @@ const theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: 'white',
-          color: '#212529',
+          backgroundColor: palette.background.default,
+          color: palette.text.primary,
           boxShadow: 'none',
-          borderBottom: '1px solid #E9ECEF',
+          borderBottom: `1px solid ${palette.divider}`,
         },
       },
     },
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          borderLeft: '1px solid #E9ECEF',
+          backgroundColor: palette.background.paper,
+          borderLeft: `1px solid ${palette.divider}`,
         },
       },
     },

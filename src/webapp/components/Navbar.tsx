@@ -83,7 +83,7 @@ export default function Navbar({ onSettingsChange }: NavbarProps) {
                 width: 40,
                 height: 40,
                 borderRadius: '50%',
-                backgroundColor: theme.palette.primary.dark,
+                backgroundColor: theme.palette.primary.main,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

@@ -53,7 +53,7 @@ export default function Dashboard() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#FFFFFF' }}>
+    <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
       <Navbar onSettingsChange={handleSettingsChange} />
       
       <Container maxWidth="xl" sx={{ py: 4 }}>
