@@ -3,14 +3,13 @@ import { MoreVert as MoreIcon } from '@mui/icons-material';
 
 interface ChangeCardProps {
   title: string;
-  url: string;
+  // url: string;
   timeAgo: string;
   tags: string[];
 }
 
-export default function ChangeCard({ title, url, timeAgo, tags }: ChangeCardProps) {
+export default function ChangeCard({ title, timeAgo, tags }: ChangeCardProps) {
   const theme = useTheme();
-  console.log(url);
   
   const getTagColor = (tag: string) => {
     switch (tag.toLowerCase()) {

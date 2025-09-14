@@ -27,6 +27,27 @@ export default function ScreenshotGallery({ screenshots }: ScreenshotGalleryProp
     setSelectedScreenshot(null);
   };
 
+  const formatRelativeTime = (dateString: string): string => {
+    const now = new Date();
+    // Parse the UTC date string and convert to local time
+    const utcDate = new Date(dateString + 'Z'); // Ensure it's treated as UTC
+    
+    const diffInSeconds = Math.floor((now.getTime() - utcDate.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) {
+      return 'just-now';
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes}-minutes-ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours}-hours-ago`;
+    } else {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days}-days-ago`;
+    }
+  };
+
   const handleDownload = async () => {
     if (!selectedScreenshot) return;
     
@@ -36,7 +57,14 @@ export default function ScreenshotGallery({ screenshots }: ScreenshotGalleryProp
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `screenshot-${selectedScreenshot.id}.png`;
+      
+      const relativeTime = formatRelativeTime(selectedScreenshot.created_at);
+      // Convert UTC to local date for filename
+      const utcDate = new Date(selectedScreenshot.created_at + 'Z');
+      const localDate = new Date(utcDate.getTime() - (utcDate.getTimezoneOffset() * 60000));
+      const timestamp = localDate.toISOString().split('T')[0];
+      link.download = `screenshot-${timestamp}-${relativeTime}.png`;
+      
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

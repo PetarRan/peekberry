@@ -50,7 +50,7 @@ export const HistoryCard = ({ item }: HistoryCardProps) => {
           marginBottom: "8px",
         }}
       >
-        {item.prompt}
+        {item.prompt !== "" ? item.prompt : "No prompt"}
       </Typography>
 
       {/* Action */}

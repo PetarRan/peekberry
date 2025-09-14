@@ -17,6 +17,7 @@ interface HistoryProps {
 }
 
 export const History = ({ onBack, historyItems, isLoading }: HistoryProps) => {
+  console.log("historyItems", historyItems);
   return (
     <Box
       data-peek-ui="true"

@@ -18,9 +18,10 @@ export default function RecentChanges({ history }: RecentChangesProps) {
   const theme = useTheme();
   
   const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
+    // Parse the UTC date string and convert to local time
+    const utcDate = new Date(dateString + 'Z'); // Ensure it's treated as UTC
     const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    const diffInMinutes = Math.floor((now.getTime() - utcDate.getTime()) / (1000 * 60));
     
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
@@ -64,7 +65,7 @@ export default function RecentChanges({ history }: RecentChangesProps) {
             <ChangeCard
               key={item.id}
               title={item.prompt}
-              url={item.url || 'Unknown URL'}
+              // url={item.url || 'Unknown URL'}
               timeAgo={formatTimeAgo(item.created_at)}
               tags={item.tags || ['applied']}
             />
