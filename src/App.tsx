@@ -21,11 +21,19 @@ export default function App() {
     });
   };
 
+  const handleTogglePopup = () => {
+    if (open) {
+      // If closing, clear selections and stop element selection
+      clearSelections();
+    }
+    setOpen(!open);
+  };
+
   return (
     <>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <FloatingButton onClick={() => setOpen(!open)} />
+        <FloatingButton onClick={handleTogglePopup} />
 
         {open && (
           <Popup

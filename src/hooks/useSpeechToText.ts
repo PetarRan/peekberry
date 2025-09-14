@@ -21,8 +21,11 @@ export const useSpeechToText = (): UseSpeechToTextReturn => {
   const startRecording = useCallback(async () => {
     try {
       setError(null);
+      console.log("Starting voice recording...");
+      
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
+      console.log("Microphone access granted");
 
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -31,11 +34,13 @@ export const useSpeechToText = (): UseSpeechToTextReturn => {
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
+          console.log("Audio data received:", event.data.size, "bytes");
         }
       };
 
       mediaRecorder.start();
       setIsRecording(true);
+      console.log("Recording started");
     } catch (err) {
       console.error("Error starting recording:", err);
       setError(
@@ -47,22 +52,35 @@ export const useSpeechToText = (): UseSpeechToTextReturn => {
   const stopRecording = useCallback(async (): Promise<string | null> => {
     return new Promise((resolve) => {
       if (!mediaRecorderRef.current || !isRecording) {
+        console.log("No active recording to stop");
         resolve(null);
         return;
       }
 
+      console.log("Stopping recording...");
       mediaRecorderRef.current.onstop = async () => {
         try {
           setIsProcessing(true);
+          console.log("Processing audio...");
 
           // Create audio blob from recorded chunks
           const audioBlob = new Blob(audioChunksRef.current, {
             type: "audio/webm",
           });
+          console.log("Audio blob created:", audioBlob.size, "bytes");
+
+          // Check if API key exists
+          const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
+          if (!apiKey) {
+            console.error("ElevenLabs API key not found");
+            setError("ElevenLabs API key not configured");
+            resolve(null);
+            return;
+          }
 
           // Initialize ElevenLabs client
           const elevenlabs = new ElevenLabsClient({
-            apiKey: import.meta.env.VITE_ELEVENLABS_API_KEY,
+            apiKey: apiKey,
           });
 
           // Convert speech to text using ElevenLabs SDK - fix the API call structure

@@ -1,20 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import {
-  Button,
-  Card,
-  Chip,
-  CircularProgress,
-  IconButton,
-  InputAdornment,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box } from "@mui/material";
 import type { SelectedElement } from "../hooks/useElementSelection";
 import { useSpeechToText } from "../hooks/useSpeechToText";
-import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
-import MicIcon from "@mui/icons-material/Mic";
-import MicOffIcon from "@mui/icons-material/MicOff";
+import { ChatInput } from "./ChatInput";
+import { ControlBar } from "./ControlBar";
+import { SelectedElementsDisplay } from "./SelectedElementsDisplay";
+import { saveScreenshotToSupabase } from "../utils/screenshot";
 
 interface PopupProps {
   selectedElements: SelectedElement[];
@@ -35,6 +26,7 @@ export const Popup = ({
   isLoading,
 }: PopupProps) => {
   const [prompt, setPrompt] = useState("");
+  const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
   const textFieldRef = useRef<HTMLInputElement>(null);
   const { isRecording, isProcessing, startRecording, stopRecording, error } =
     useSpeechToText();
@@ -68,6 +60,25 @@ export const Popup = ({
     }
   };
 
+  const handleScreenshot = async () => {
+    try {
+      const success = await saveScreenshotToSupabase({
+        selectedElements: selectedElements.map(el => el.selector),
+        prompt,
+        model: selectedModel,
+      });
+      
+      if (success) {
+        console.log("Screenshot saved successfully");
+        // You could add a toast notification here
+      } else {
+        console.error("Failed to save screenshot");
+      }
+    } catch (error) {
+      console.error("Error taking screenshot:", error);
+    }
+  };
+
   // Auto-focus the TextField when elements are selected
   useEffect(() => {
     if (selectedElements.length > 0 && textFieldRef.current) {
@@ -87,7 +98,7 @@ export const Popup = ({
   }, [error]);
 
   return (
-    <Card
+    <Box
       data-peek-ui="true"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -96,89 +107,44 @@ export const Popup = ({
         bottom: "70px",
         right: "20px",
         width: "500px",
-        padding: "10px",
-        background: "rgba(255, 255, 255, 0.9)",
+        backgroundColor: "#1a1a1a",
         backdropFilter: "blur(10px)",
-        border: "2px solid rgba(0, 0, 0, 0.05)",
-        borderRadius: "12px",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
+        borderRadius: "8px",
         zIndex: 100001,
+        overflow: "hidden",
       }}
     >
-      <Stack spacing={2}>
-        <Typography variant="body2" color="text.secondary">
-          {selectedElements.length === 0
-            ? "Click elements to select them"
-            : `Selected: ${selectedElements.length} element(s)`}
-        </Typography>
+      {/* Selected Elements Display */}
+      <SelectedElementsDisplay
+        selectedElements={selectedElements}
+        onRemoveSelection={onRemoveSelection}
+      />
 
-        {selectedElements.length > 0 && (
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            {selectedElements.map((item, index) => (
-              <Chip
-                key={index}
-                label={`${index + 1}: ${
-                  item.selector.length > 20
-                    ? item.selector.slice(0, 20) + "..."
-                    : item.selector
-                }`}
-                size="small"
-                onDelete={() => onRemoveSelection(index)}
-                sx={{ marginBottom: 1 }}
-              />
-            ))}
-          </Stack>
-        )}
-
-        <TextField
-          inputRef={textFieldRef}
+      {/* Chat Input */}
+      <Box sx={{ padding: "16px" }}>
+        <ChatInput
           value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
+          onChange={setPrompt}
           onKeyPress={handleKeyPress}
-          placeholder={isProcessing ? "Processing speech..." : "Prompt text"}
-          style={{ width: "100%", marginTop: "5px" }}
-          disabled={isProcessing}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={handleVoiceRecording}
-                  edge="end"
-                  color={isRecording ? "error" : "default"}
-                  disabled={isLoading || isProcessing}
-                >
-                  {isProcessing ? (
-                    <CircularProgress size={20} />
-                  ) : isRecording ? (
-                    <MicOffIcon />
-                  ) : (
-                    <MicIcon />
-                  )}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
+          isProcessing={isProcessing}
+          disabled={selectedElements.length === 0}
+          hasSelectedElements={selectedElements.length > 0}
         />
+      </Box>
 
-        <Stack direction="row" spacing={1}>
-          <Button
-            variant="contained"
-            onClick={handleSendToLLM}
-            disabled={
-              selectedElements.length === 0 || !prompt.trim() || isLoading
-            }
-            endIcon={
-              isLoading ? (
-                <CircularProgress size={14} color="inherit" />
-              ) : (
-                <ChevronRightRoundedIcon />
-              )
-            }
-            sx={{ mt: 1 }}
-          >
-            Execute
-          </Button>
-        </Stack>
-      </Stack>
-    </Card>
+      {/* Control Bar */}
+      <ControlBar
+        selectedModel={selectedModel}
+        onModelChange={setSelectedModel}
+        onVoiceRecording={handleVoiceRecording}
+        onScreenshot={handleScreenshot}
+        onApply={handleSendToLLM}
+        isRecording={isRecording}
+        isProcessing={isProcessing}
+        isLoading={isLoading}
+        disabled={selectedElements.length === 0 || !prompt.trim()}
+      />
+    </Box>
   );
 };

@@ -146,6 +146,39 @@ const theme = createTheme({
             borderRadius: 10,
             padding: "2px 8px",
           },
+          // Chat extension specific styles
+          "&.peekberry-chat-input": {
+            backgroundColor: "transparent !important",
+            "& .MuiFilledInput-root": {
+              backgroundColor: "transparent !important",
+              borderRadius: "8px !important",
+              "&:before": {
+                borderBottom: "none !important",
+              },
+              "&:after": {
+                borderBottom: "none !important",
+              },
+              "&:hover:not(.Mui-disabled):before": {
+                borderBottom: "none !important",
+              },
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.05) !important",
+                border: "1px solid rgba(255, 255, 255, 0.2) !important",
+              },
+              "&.Mui-focused": {
+                backgroundColor: "rgba(255, 255, 255, 0.05) !important",
+                border: "1px solid rgba(255, 255, 255, 0.3) !important",
+              },
+            },
+            "& .MuiInputBase-input": {
+              color: "white !important",
+              padding: "12px 14px !important",
+              "&::placeholder": {
+                color: "rgba(255, 255, 255, 0.7) !important",
+                fontStyle: "italic",
+              },
+            },
+          },
         },
       },
       defaultProps: {
@@ -196,6 +229,39 @@ const theme = createTheme({
         ".react-grid-item.react-grid-placeholder": {
           background: `${palette.primary.main}`,
           borderRadius: 4,
+        },
+        // Force override for peekberry chat input with dynamic classes
+        ".MuiFormControl-root.MuiFormControl-fullWidth.MuiTextField-root.peekberry-chat-input": {
+          backgroundColor: "transparent !important",
+          "& .MuiFilledInput-root": {
+            backgroundColor: "transparent !important",
+            borderRadius: "8px !important",
+            "&:before": {
+              borderBottom: "none !important",
+            },
+            "&:after": {
+              borderBottom: "none !important",
+            },
+            "&:hover:not(.Mui-disabled):before": {
+              borderBottom: "none !important",
+            },
+            "&:hover": {
+              backgroundColor: "rgba(255, 255, 255, 0.05) !important",
+              border: "1px solid rgba(255, 255, 255, 0.2) !important",
+            },
+            "&.Mui-focused": {
+              backgroundColor: "rgba(255, 255, 255, 0.05) !important",
+              border: "1px solid rgba(255, 255, 255, 0.3) !important",
+            },
+          },
+          "& .MuiInputBase-input": {
+            color: "white !important",
+            padding: "12px 14px !important",
+            "&::placeholder": {
+              color: "rgba(255, 255, 255, 0.8) !important",
+              fontStyle: "italic",
+            },
+          },
         },
       },
     },
