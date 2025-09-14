@@ -8,6 +8,7 @@ export const FloatingButton = ({ onClick }: FloatingButtonProps) => {
   return (
     <Box
       onClick={onClick}
+      data-peek-ui="true"
       style={{
         position: "fixed",
         bottom: "20px",
