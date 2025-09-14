@@ -78,69 +78,68 @@ export const ControlBar = ({
           <FileDownloadIcon fontSize="small" />
         </IconButton>
       </Stack>
-
-      {/* Center - Model Selection */}
-      <Button
-        onClick={handleModelMenuOpen}
-        endIcon={<KeyboardArrowDownIcon />}
-        sx={{
-          color: "white",
-          textTransform: "none",
-          fontSize: "14px",
-          "&:hover": {
-            backgroundColor: "rgba(255, 255, 255, 0.1)",
-          },
-        }}
-      >
-        {OPENAI_MODELS.find((model) => model.value === selectedModel)?.label || "GPT-4o Mini"}
-      </Button>
-
-      <Menu
-        anchorEl={modelMenuAnchor}
-        open={Boolean(modelMenuAnchor)}
-        onClose={handleModelMenuClose}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-        transformOrigin={{
-          vertical: 'bottom',
-          horizontal: 'center',
-        }}
-        MenuListProps={{
-          sx: {
-            zIndex: 100003,
-          },
-        }}
-        PaperProps={{
-          sx: {
-            backgroundColor: "#2a2a2a",
-            color: "white",
-            zIndex: 100003,
-            "& .MuiMenuItem-root": {
-              "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-              },
-            },
-          },
-        }}
-        sx={{
-          zIndex: 100003,
-        }}
-      >
-        {OPENAI_MODELS.map((model) => (
-          <MenuItem
-            key={model.value}
-            onClick={() => handleModelSelect(model.value)}
-            selected={model.value === selectedModel}
-          >
-            {model.label}
-          </MenuItem>
-        ))}
-      </Menu>
+      
 
       {/* Right side - Mic, Camera, Apply */}
       <Stack direction="row" spacing={1} alignItems="center">
+        <Button
+          onClick={handleModelMenuOpen}
+          endIcon={<KeyboardArrowDownIcon />}
+          sx={{
+            color: "white",
+            textTransform: "none",
+            fontSize: "14px",
+            "&:hover": {
+              backgroundColor: "rgba(255, 255, 255, 0.1)",
+            },
+          }}
+        >
+          {OPENAI_MODELS.find((model) => model.value === selectedModel)?.label || "GPT-4o Mini"}
+        </Button>
+
+        <Menu
+          anchorEl={modelMenuAnchor}
+          open={Boolean(modelMenuAnchor)}
+          onClose={handleModelMenuClose}
+          anchorOrigin={{
+            vertical: 'top',
+            horizontal: 'center',
+          }}
+          transformOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+          MenuListProps={{
+            sx: {
+              zIndex: 100003,
+            },
+          }}
+          PaperProps={{
+            sx: {
+              backgroundColor: "#2a2a2a",
+              color: "white",
+              zIndex: 100003,
+              "& .MuiMenuItem-root": {
+                "&:hover": {
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                },
+              },
+            },
+          }}
+          sx={{
+            zIndex: 100003,
+          }}
+        >
+          {OPENAI_MODELS.map((model) => (
+            <MenuItem
+              key={model.value}
+              onClick={() => handleModelSelect(model.value)}
+              selected={model.value === selectedModel}
+            >
+              {model.label}
+            </MenuItem>
+          ))}
+        </Menu>
         <IconButton
           onClick={onVoiceRecording}
           size="small"
