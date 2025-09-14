@@ -1,11 +1,24 @@
 import { useUser } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
+import { Box, Container } from "@mui/material";
 import { supabase } from "../../utils/supabase";
+import Navbar from "../components/Navbar";
+import WelcomeMessage from "../components/WelcomeMessage";
+import KPICards from "../components/KPICards";
+import ScreenshotGallery from "../components/ScreenshotGallery";
+import RecentChanges from "../components/RecentChanges";
 
 export default function Dashboard() {
   const { user } = useUser();
   const [screenshots, setScreenshots] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
+  const [kpiData] = useState({
+    changesMade: 127,
+    elementsModified: 89,
+    timeSaved: 18.5,
+    successRate: 94,
+    websitesCount: 23,
+  });
 
   useEffect(() => {
     if (!user) return;
@@ -30,29 +43,33 @@ export default function Dashboard() {
     loadData();
   }, [user]);
 
+  const handleSettingsChange = (settings: { autoSave: boolean; sharePrompts: boolean }) => {
+    // Handle settings changes here
+    console.log('Settings changed:', settings);
+  };
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl mb-4">Welcome, {user?.fullName}</h1>
-
-      <section>
-        <h2 className="text-xl mb-2">📸 Screenshots</h2>
-        <div className="grid grid-cols-3 gap-2">
-          {screenshots.map((s) => (
-            <img key={s.id} src={s.image_url} alt="screenshot" className="rounded" />
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-6">
-        <h2 className="text-xl mb-2">📝 Edit History</h2>
-        <ul className="list-disc pl-5">
-          {history.map((h) => (
-            <li key={h.id}>
-              <strong>{h.prompt}</strong> → {h.action}
-            </li>
-          ))}
-        </ul>
-      </section>
-    </div>
+    <Box sx={{ minHeight: '100vh', backgroundColor: '#FFFFFF' }}>
+      <Navbar onSettingsChange={handleSettingsChange} />
+      
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <WelcomeMessage userName={user.fullName || user.firstName || 'User'} />
+        
+        <KPICards data={kpiData} />
+        
+        <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          <Box sx={{ flex: '2', minWidth: '300px' }}>
+            <ScreenshotGallery screenshots={screenshots} />
+          </Box>
+          <Box sx={{ flex: '1', minWidth: '300px' }}>
+            <RecentChanges history={history} />
+          </Box>
+        </Box>
+      </Container>
+    </Box>
   );
 }

@@ -190,6 +190,23 @@ const theme = createTheme({
         },
       },
     },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'white',
+          color: '#212529',
+          boxShadow: 'none',
+          borderBottom: '1px solid #E9ECEF',
+        },
+      },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          borderLeft: '1px solid #E9ECEF',
+        },
+      },
+    },
   },
 });
 

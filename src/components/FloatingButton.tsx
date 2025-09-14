@@ -21,6 +21,7 @@ export const FloatingButton = ({ onClick }: FloatingButtonProps) => {
         display: "flex",
         alignItems: "center",
         cursor: "pointer",
+        padding: "10px",
         zIndex: 100001,
       }}
     >
